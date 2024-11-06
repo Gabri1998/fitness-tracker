@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-   
     <div>
       <b-navbar toggleable="lg" type="dark" variant="info">
         <b-navbar-brand href="/">Fitness Tracker</b-navbar-brand>

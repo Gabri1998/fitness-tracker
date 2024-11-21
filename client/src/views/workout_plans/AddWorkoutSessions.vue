@@ -38,8 +38,8 @@
         name="flavour-1"
       ></b-form-checkbox-group>
       <div class="add-button">
-        <b-button type="submit" variant="primary">Add</b-button>
-        <b-button type="reset" variant="danger">Reset</b-button>
+        <b-button v-b-tooltip.hover type="submit" variant="primary">Add</b-button>
+        <b-button v-b-tooltip.hover type="reset" variant="danger">Reset</b-button>
       </div>
     </b-form>
   </div>

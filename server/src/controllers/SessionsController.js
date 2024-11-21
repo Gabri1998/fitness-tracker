@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 const Session = require("../models/Session");
+
+
 // The overriding methods applying here by delete and put
 router.get("/", async (req, res, next) => {
   try {

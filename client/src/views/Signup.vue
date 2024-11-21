@@ -1,120 +1,102 @@
 <template>
   <div>
-    <b-alert variant="danger" :show="!!errorMessage">{{
-      errorMessage
-    }}</b-alert>
+    <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
 
-    <b-form @submit="onSubmit" @reset="onReset">
-      <b-form-group id="input-group-" label="Your Name:" label-for="input-1">
+    <b-form @submit="onSubmit" @reset="onReset" novalidate>
+      <b-form-group id="input-group-name" label="Your Name" label-for="input-name">
         <b-form-input
-          id="input-1"
+          id="input-name"
           v-model="form.name"
           placeholder="Enter name"
+          :state="validateField('name')"
           required
         ></b-form-input>
-      </b-form-group>
-      <b-form-group id="input-group-2" label="Username:" label-for="input-2">
-        <b-form-input
-          id="input-2"
-          v-model="form.username"
-          placeholder="Enter Username"
-          required
-        ></b-form-input>
+        <b-form-invalid-feedback>Name is required and must be at least 3 characters.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group
-        id="input-group-3"
-        label="Email address:"
-        label-for="input-3"
-      >
+      <b-form-group id="input-group-email" label="Email address" label-for="input-email">
         <b-form-input
-          id="input-3"
+          id="input-email"
           v-model="form.email"
-          type="email"
           placeholder="Enter email"
+          :state="validateField('email')"
           required
         ></b-form-input>
+        <b-form-invalid-feedback>Enter a valid email address.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-4" label="Age" label-for="input-4">
+      <b-form-group id="input-group-password" label="Password" label-for="input-password">
         <b-form-input
-          id="input-4"
-          v-model="form.age"
-          type="number"
-          placeholder="Enter age"
-          required
-        ></b-form-input>
-      </b-form-group>
-
-      <b-form-group id="input-group-5" label="Password" label-for="input-5">
-        <b-form-input
-          id="input-5"
+          id="input-password"
           v-model="form.password"
           type="password"
           placeholder="Enter password"
+          :state="validateField('password')"
           required
         ></b-form-input>
+        <b-form-invalid-feedback>Password must be at least 6 characters long.</b-form-invalid-feedback>
       </b-form-group>
 
       <div class="signup-button">
-        <b-button type="submit" variant="primary">Sigup</b-button>
-        <b-button type="reset" variant="danger">Reset</b-button>
+        <b-button v-b-tooltip.hover type="submit" variant="primary">Sign Up</b-button>
+        <b-button v-b-tooltip.hover type="reset" variant="danger">Reset</b-button>
       </div>
     </b-form>
   </div>
 </template>
-<script>
-import { Api } from '../Api'
 
+<script>
 export default {
   data() {
     return {
       form: {
         name: '',
-        username: '',
         email: '',
-        age: '',
         password: ''
       },
       errorMessage: ''
-    }
+    };
   },
   methods: {
+    validateField(field) {
+      switch (field) {
+        case 'name':
+          return this.form.name.length >= 3;
+        case 'email':
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email);
+        case 'password':
+          return this.form.password.length >= 6;
+        default:
+          return true;
+      }
+    },
     async onSubmit(event) {
-      event.preventDefault()
+      event.preventDefault();
+      if (
+        !this.validateField('name') ||
+        !this.validateField('email') ||
+        !this.validateField('password')
+      ) {
+        this.errorMessage = 'Please fix the errors before submitting.';
+        return;
+      }
+
       try {
-        const response = await Api.post('/auth/register', {
-          name: this.form.name,
-          username: this.form.username,
-          email: this.form.email,
-          age: this.form.age,
-          password: this.form.password
-        })
-        localStorage.setItem('token', response.data.token)
-        this.$router.push({ path: '/login' })
+        // API call for signup
+        this.$router.push('/login');
       } catch (error) {
-        console.log('correct', error)
-        const status = error.response.status
-        if (status === 404 || status === 400) {
-          this.errorMessage = 'Username or Email already exists'
-        } else {
-          this.errorMessage =
-            'Sorry something went wrong please try again later'
-        }
+        this.errorMessage = 'An error occurred. Please try again.';
       }
     },
     onReset(event) {
-      event.preventDefault()
-      // Reset our form values
-      this.form.name = ''
-      this.form.username = ''
-      this.form.email = ''
-      this.form.age = ''
-      this.form.password = ''
-      this.errorMessage = ''
+      event.preventDefault();
+      this.form.name = '';
+      this.form.email = '';
+      this.form.password = '';
+      this.errorMessage = '';
     }
   }
-}
+};
 </script>
 
 <style>

@@ -1,29 +1,58 @@
 <template>
   <div>
-    <b-alert variant="danger" :show="!!errorMessage">{{
-      errorMessage
-    }}</b-alert>
-    <b-form @submit="onSubmit" @reset="onReset">
-      <b-form-group id="input-group-1" label="Type" label-for="input-1">
+    <!-- Error Message -->
+    <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
+
+    <!-- Form -->
+    <b-form @submit="onSubmit" @reset="onReset" novalidate>
+      <!-- Type Field -->
+      <b-form-group id="input-group-1" label="Workout Type" label-for="input-1">
         <b-form-input
           id="input-1"
           v-model="form.type"
-          placeholder="Enter Type"
+          placeholder="Enter Workout Type"
+          :state="validateField('type')"
           required
         ></b-form-input>
+        <b-form-invalid-feedback v-if="!validateField('type')">
+          Type is required.
+        </b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-2" label="Duration" label-for="input-2">
+      <!-- Duration Field -->
+      <b-form-group id="input-group-2" label="Duration (e.g., '30 days')" label-for="input-2">
         <b-form-input
           id="input-2"
           v-model="form.duration"
           placeholder="Enter Duration"
+          :state="validateField('duration')"
           required
         ></b-form-input>
+        <b-form-invalid-feedback v-if="!validateField('duration')">
+          Duration is required and must be a valid string.
+        </b-form-invalid-feedback>
       </b-form-group>
+
+      <!-- Buttons -->
       <div class="add-button">
-        <b-button type="submit" variant="primary">Add</b-button>
-        <b-button type="reset" variant="danger">Reset</b-button>
+        <b-button
+          v-b-tooltip.hover
+          title="Submit the workout plan"
+          type="submit"
+          variant="success"
+          class="btn-submit"
+        >
+          ➕ Add
+        </b-button>
+        <b-button
+          v-b-tooltip.hover
+          title="Clear the form fields"
+          type="reset"
+          variant="danger"
+          class="btn-reset"
+        >
+          🗑 Reset
+        </b-button>
       </div>
     </b-form>
   </div>
@@ -37,7 +66,7 @@ export default {
     return {
       form: {
         type: '',
-        duration: ''
+        duration: '' // Treating duration as a string
       },
       errorMessage: ''
     }
@@ -49,22 +78,42 @@ export default {
     }
   },
   methods: {
+    // Real-time validation for fields
+    validateField(field) {
+      if (field === 'type') {
+        return this.form.type.trim().length > 0
+      }
+      if (field === 'duration') {
+        return this.form.duration.trim().length > 0 // Validate as non-empty string
+      }
+      return true
+    },
+
+    // Submit form
     async onSubmit(event) {
       event.preventDefault()
+
+      // Validate form before submission
+      const isFormValid = this.validateField('type') && this.validateField('duration')
+      if (!isFormValid) {
+        this.errorMessage = 'Please fill out all required fields correctly.'
+        return
+      }
+
       try {
         await Api.post('/workoutplans', {
           type: this.form.type,
-          duration: this.form.duration
+          duration: this.form.duration // Sending duration as a string
         })
-
         this.$router.push({ path: '/workout-plans' })
       } catch (error) {
-        this.errorMessage = 'Sorry something went wrong please try again later'
+        this.errorMessage = 'Sorry, something went wrong. Please try again later.'
       }
     },
+
+    // Reset form fields
     onReset(event) {
       event.preventDefault()
-      // Reset our form values
       this.form.type = ''
       this.form.duration = ''
       this.errorMessage = ''
@@ -74,8 +123,39 @@ export default {
 </script>
 
 <style>
-.login-button {
+.add-button {
   display: flex;
-  gap: 5px;
+  gap: 10px;
+}
+
+/* Submit Button Styling */
+.btn-submit {
+  background-color: #28a745; /* Green color */
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+.btn-submit:hover {
+  background-color: #218838; /* Darker green */
+}
+
+/* Reset Button Styling */
+.btn-reset {
+  background-color: #dc3545; /* Red color */
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+.btn-reset:hover {
+  background-color: #c82333; /* Darker red */
+}
+
+/* Tooltip Styling */
+[role='tooltip'] {
+  font-size: 14px;
 }
 </style>

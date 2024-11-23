@@ -7,16 +7,16 @@
 
     <!-- Buttons -->
     <div class="btn_container">
-      <b-button
-        @click="deleteWorkoutPlans"
-        variant="outline-danger"
-        class="btn-danger"
-        v-b-tooltip.hover
-        title="Delete all workout plans"
-      >
-        🗑 Delete All
-      </b-button>
-    </div>
+  <b-button
+    @click="deleteWorkoutPlans"
+    variant="outline-danger"
+    class="btn-outline-danger"
+    v-b-tooltip.hover
+    title="Delete all workout plans"
+  >
+    🗑 Delete All
+  </b-button>
+</div>
 
     <!-- Table -->
     <b-table striped hover :items="workoutPlans" :fields="fields" class="workout-table">
@@ -126,21 +126,38 @@ h3 {
 
 .btn-danger:hover {
   background-color: #d9363e; /* Darker red on hover */
-  color: white; /* Keeps text white on hover */
 }
 
+.btn-outline-danger {
+  background-color: transparent; /* Transparent background */
+  border: 2px solid #ff4d4f; /* Red border */
+  color: #ff4d4f; /* Red text */
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+.btn-outline-danger:hover {
+  background-color: #ff4d4f; /* Red background on hover */
+  color: white; /* White text on hover */
+}
 .btn-add {
   display: inline-block;
-  background-color: #007bff;
-  color: white;
+  background-color: #007bff; /* Default blue background */
+  color: white; /* White text for high contrast */
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 4px;
   margin-top: 1em;
+  font-weight: bold; /* Make the text more prominent */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .btn-add:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue on hover */
+  color: white !important; /* Ensure text remains white on hover */
+  text-decoration: none; /* Prevent underline on hover */
 }
 
 /* Table Styles */

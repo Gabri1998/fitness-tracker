@@ -14,14 +14,14 @@
       <section class="session-card">
         <img src="sessions.jpg" alt="" />
         <div>
-          <h1>Sessions</h1>
+          <h1>Total Sessions</h1>
           <h1>{{ this.summary.sessionCount }}</h1>
         </div>
       </section>
       <section class="exercise-card">
         <img src="/exercises.jpg" alt="" />
         <div>
-          <h1>Exercises</h1>
+          <h1>Selected Exercises</h1>
           <h1>{{ this.summary.exerciseCount }}</h1>
         </div>
       </section>

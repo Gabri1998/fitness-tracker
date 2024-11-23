@@ -164,8 +164,15 @@ router.patch("/:id", async function (req, res, next) {
 //DELETE
 router.delete("/:id", async function (req, res, next) {
   try {
-    var id = req.params.id;
-    const user = await User.findByIdAndDelete({ _id: id });
+    const id = req.params.id;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // Proceed to delete
+    const user = await User.findByIdAndDelete(id);
 
     if (user === null) {
       return res.status(404).json({ message: "User not found" });
@@ -176,6 +183,7 @@ router.delete("/:id", async function (req, res, next) {
     next(err);
   }
 });
+
 
 router.delete("/", async function (req, res, next) {
   try {

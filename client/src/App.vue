@@ -2,73 +2,248 @@
   <div id="app">
     <div>
       <b-navbar toggleable="lg" type="dark" variant="info">
+        <!-- Navbar Brand -->
         <b-navbar-brand href="/">Fitness Tracker</b-navbar-brand>
 
+        <!-- Navbar Toggle Button -->
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-        <b-collapse id="nav-collapse" is-nav>
-          <b-navbar-nav>
-            <b-nav-item v-if="isLoggedIn"
-              ><router-link to="/">Home</router-link></b-nav-item
-            >
-            <b-nav-item v-if="isLoggedIn"
-              ><router-link to="/workout-plans"
-                >Workout Plans</router-link
-              ></b-nav-item
-            >
-            <b-nav-item v-if="isLoggedIn"
-              ><router-link to="/exercises">Exercises</router-link></b-nav-item
-            >
-            <b-nav-item v-if="!isLoggedIn"
-              ><router-link to="/login">Log in</router-link>
-            </b-nav-item>
-            <b-nav-item v-if="!isLoggedIn"
-              ><router-link to="/Signup">Sign up</router-link></b-nav-item
-            >
+        <!-- Navbar Items -->
+        <b-collapse id="nav-collapse" is-nav class="navbar-collapse-custom">
+          <b-navbar-nav class="nav-left">
+            <!-- Left-aligned items (empty for now) -->
+          </b-navbar-nav>
+
+          <!-- Centered Links -->
+          <b-navbar-nav class="mx-auto nav-center">
             <b-nav-item v-if="isLoggedIn">
-              <a href="#" @click="logout">Log out</a></b-nav-item
+              <router-link to="/">Home</router-link>
+            </b-nav-item>
+            <b-nav-item v-if="isLoggedIn">
+              <router-link to="/workout-plans">Workout Plans</router-link>
+            </b-nav-item>
+            <b-nav-item v-if="isLoggedIn">
+              <router-link to="/exercises">Exercises-list</router-link>
+            </b-nav-item>
+          </b-navbar-nav>
+
+          <!-- Profile Dropdown, aligned to the right -->
+          <b-navbar-nav class="nav-right">
+            <b-nav-item v-if="!isLoggedIn">
+              <router-link to="/login">Log in</router-link>
+            </b-nav-item>
+            <b-nav-item v-if="!isLoggedIn">
+              <router-link to="/signup">Sign up</router-link>
+            </b-nav-item>
+            <b-nav-item-dropdown
+              v-if="isLoggedIn"
+              text="Profile"
+              right
+              toggle-class="profile-dropdown-toggle"
+              menu-class="dropdown-menu-custom"
             >
+              <b-dropdown-item @click="deleteAccount" class="dropdown-item-delete">
+                ❌ Delete Account
+              </b-dropdown-item>
+              <b-dropdown-item @click="logout" class="dropdown-item-logout">
+                🚪 Logout
+              </b-dropdown-item>
+            </b-nav-item-dropdown>
           </b-navbar-nav>
         </b-collapse>
       </b-navbar>
     </div>
-
-    <!-- Render the content of the current page view -->
     <b-container class="container_layout">
       <router-view />
     </b-container>
   </div>
 </template>
+
+
 <script>
+import { Api } from '@/Api';
+
 export default {
   data() {
     return {
       isLoggedIn: localStorage.getItem('token') != null
-    }
+    };
   },
-
   methods: {
-    logout(e) {
-      e.preventDefault()
-      localStorage.removeItem('token')
-      // this.$router.push({ path: '/login' })
-      window.location.href = '/login'
+    deleteAccount() {
+      if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        const token = localStorage.getItem('token');
+        let userId;
+        try {
+          userId = this.decodeUserIdFromToken(token);
+          console.log('Token:', token);
+        } catch (err) {
+          console.error('Failed to decode user ID from token:', err);
+          alert('Invalid user session. Please log in again.');
+          this.logout();
+          return;
+        }
+        console.log('Token:', token);
+
+        Api.delete(`/users/${userId}`, {
+          headers: { Authorization: token }
+        })
+          .then(() => {
+            localStorage.removeItem('token');
+            alert('Your account has been successfully deleted.');
+            window.location.href = '/signup';
+          })
+          .catch((error) => {
+            console.error('Error deleting account:', error);
+            alert('Failed to delete account. Please try again later.');
+          });
+      }
+    },
+    decodeUserIdFromToken(token) {
+      if (!token) {
+        throw new Error('Token is missing or invalid.');
+      }
+
+      const [encryptedUserId] = token.split(':');
+      if (!encryptedUserId) {
+        throw new Error('Invalid token format.');
+      }
+
+      try {
+        if (!/^[a-fA-F0-9]{24}$/.test(encryptedUserId)) {
+          throw new Error('Invalid ObjectId format');
+        }
+        return encryptedUserId;
+      } catch (err) {
+        console.error('Failed to decode user ID from token:', err);
+        throw err;
+      }
+    },
+    logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
   }
-}
+};
 </script>
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+<style scoped>
+/* Navbar Background and Text */
+.b-navbar {
+  background-color: #002752; /* Deep navy blue for high contrast */
+  border-bottom: 3px solid #004085; /* Slightly lighter for distinction */
+  display: flex;
+  justify-content: space-between; /* Ensures left, center, and right sections are spaced out */
+  align-items: center;
 }
-#nav-collapse a {
-  color: white;
+
+/* Navbar Brand */
+.b-navbar-brand {
+  color: #ffffff !important; /* Pure white for maximum visibility */
+  font-weight: bold;
 }
-.container_layout {
-  padding-top: 16px;
-  padding-bottom: 16px;
+
+.b-navbar-brand:hover {
+  color: #ffc107 !important; /* Gold hover effect for brand */
+}
+
+/* Centered Navbar Links */
+.navbar-collapse-custom {
+  width: 100%; /* Ensures full width for proper alignment */
+  display: flex;
+  justify-content: space-between; /* Separate left, center, and right areas */
+  align-items: center;
+}
+
+.nav-center {
+  display: flex;
+  justify-content: center; /* Ensures links are centered horizontally */
+  flex: 1; /* Takes up all available space */
+  text-align: center;
+}
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Navbar Links */
+.b-navbar-nav a {
+  color: #ffffff !important; /* Brighter white for high contrast */
+  font-weight: bold; /* Emphasize text for visibility */
+  text-transform: uppercase; /* Uppercase for better readability */
+  letter-spacing: 0.5px; /* Slightly spaced for clarity */
+  font-size: 1.1rem; /* Slightly larger font for readability */
+  margin: 0 10px; /* Adds spacing between items */
+}
+
+.b-navbar-nav a:hover {
+  color: #ffc107 !important; /* Gold color for strong hover contrast */
+  text-decoration: underline; /* Non-color indicator for hover */
+  background-color: rgba(255, 193, 7, 0.1); /* Light gold background hover effect */
+}
+
+.b-navbar-nav a:focus {
+  color: #ffffff !important; /* Maintain white text on focus */
+  background-color: #004085; /* Slightly lighter blue for focus background */
+  outline: 2px solid #ffc107; /* Gold focus ring for accessibility */
+  outline-offset: 2px;
+}
+
+/* Profile Dropdown Toggle */
+.profile-dropdown-toggle {
+  font-weight: bold;
+  color: #ffffff !important; /* Brighter white for dropdown toggle */
+}
+
+.profile-dropdown-toggle:hover {
+  text-decoration: underline;
+  color: #ffc107 !important; /* Matches hover state with links */
+}
+
+.dropdown-menu-custom {
+  background-color: #1a1a1a; /* Dark background for contrast */
+  border: 1px solid #444; /* Distinct border for definition */
+  color: #ffffff !important; /* Ensure dropdown content is white */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Dropdown Items */
+.dropdown-item-delete,
+.dropdown-item-logout {
+  font-weight: bold;
+  color: #ffffff !important; /* White text for dropdown items */
+}
+
+.dropdown-item-delete:hover {
+  background-color: #ffe5e5; /* Light red hover effect */
+  color: #cc0000 !important; /* Dark red for hover state */
+}
+
+.dropdown-item-logout:hover {
+  background-color: #d4f1f9; /* Light teal for hover */
+  color: #0d6efd !important; /* Blue for hover state */
+}
+
+/* Fix for disappearing text on hover (specific to buttons) */
+button:hover,
+button:focus {
+  color: #ffffff !important; /* Ensure text stays visible */
+}
+
+/* Mobile and Small Screens Adjustments */
+@media (max-width: 768px) {
+  .b-navbar {
+    background-color: #003366; /* Slightly brighter navy for smaller screens */
+  }
+  .b-navbar-nav a {
+    font-size: 1.2rem; /* Slightly larger font for better readability */
+  }
+
+  .dropdown-menu-custom {
+    max-width: 200px; /* Adjust width for smaller screens */
+    padding: 5px;
+  }
 }
 </style>

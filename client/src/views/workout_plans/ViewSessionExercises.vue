@@ -1,17 +1,71 @@
 <template>
   <div>
-    {{ form.name }}
+    <!-- Session Name -->
+    <h3>Session: {{ form.name }}</h3>
     <hr />
 
-    <b-form-checkbox-group
-      id="checkbox-group-1"
-      v-model="form.selectedExercises"
-      :options="exercises"
-      :aria-describedby="ariaDescribedby"
-      name="flavour-1"
-      stacked
-      disabled
-    ></b-form-checkbox-group>
+    <!-- Exercises Table -->
+    <b-table
+      striped
+      hover
+      :items="exercises"
+      :fields="['name', 'instruction', 'level', 'file']"
+      class="exercises-table"
+    >
+      <!-- Name -->
+      <template #cell(name)="data">
+        {{ data.item.name }}
+      </template>
+
+      <!-- Instruction -->
+      <template #cell(instruction)="data">
+        {{ data.item.instruction }}
+      </template>
+
+      <!-- Level -->
+      <template #cell(level)="data">
+        {{ data.item.level }}
+      </template>
+
+      <!-- File Preview -->
+      <template #cell(file)="data">
+        <div v-if="data.item.fileContent">
+          <b-button
+            @click="showFilePreview(data.item)"
+            variant="link"
+            class="file-preview-btn"
+          >
+            View File
+          </b-button>
+        </div>
+        <div v-else>No File</div>
+      </template>
+    </b-table>
+
+    <!-- File Modal -->
+    <b-modal v-model="showModal" :title="modalTitle" :size="modalSize" hide-footer>
+      <div v-if="previewFileContent">
+        <!-- Conditional rendering based on file type -->
+        <img
+          v-if="previewFileType.startsWith('image')"
+          :src="previewFileContent"
+          alt="File Preview"
+          class="img-preview"
+        />
+        <video
+          v-else-if="previewFileType.startsWith('video')"
+          :src="previewFileContent"
+          controls
+          class="video-preview"
+        ></video>
+        <iframe
+          v-else
+          :src="previewFileContent"
+          style="width: 100%; height: 300px;"
+          frameborder="0"
+        ></iframe>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -25,10 +79,16 @@ export default {
         name: '',
         duration: '',
         date: '',
-        selectedExercises: []
+        selectedExercises: [] // Exercise IDs linked to the session
       },
-      exercises: [],
-      errorMessage: ''
+      exercises: [], // Detailed exercise data for the session
+      errorMessage: '',
+      // Modal for file preview
+      showModal: false,
+      previewFileContent: null,
+      previewFileType: '',
+      modalTitle: '',
+      modalSize: 'md'
     }
   },
   mounted() {
@@ -36,38 +96,10 @@ export default {
     if (notLoggedIn) {
       this.$router.push('/login')
     } else {
-      this.getAllExercises()
       this.getSessionDetails()
     }
   },
   methods: {
-    async onSubmit(event) {
-      event.preventDefault()
-      try {
-        await Api.put(`/sessions/${this.$route.params.sessionid}`, {
-          name: this.form.name,
-          duration: this.form.duration,
-          date: this.form.date,
-          workoutplan: this.$route.params.workoutid,
-          exercises: this.form.selectedExercises
-        })
-
-        this.$router.push({
-          path: `/workout-plans/${this.$route.params.workoutid}/sessions`
-        })
-      } catch (error) {
-        this.errorMessage = 'Sorry something went wrong please try again later'
-      }
-    },
-    onReset(event) {
-      event.preventDefault()
-      // Reset our form values
-      this.form.name = ''
-      this.form.duration = ''
-      this.form.date = ''
-      this.form.selectedExercises = []
-      this.errorMessage = ''
-    },
     formatDate(date) {
       date = new Date(date)
       const day = `${date.getDate() < 10 ? '0' : ''}${date.getDate()}`
@@ -77,32 +109,52 @@ export default {
       const year = date.getFullYear()
       return `${year}-${month}-${day}`
     },
-    getSessionDetails() {
-      Api.get(`/sessions/${this.$route.params.sessionid}`)
-        .then((response) => {
-          this.form.name = response.data.name
-          this.form.duration = response.data.duration
-          this.form.date = this.formatDate(response.data.date)
-          this.form.selectedExercises = response.data.exercises
-        })
-        .catch(() => {
-          this.errorMessage =
-            'Sorry something went wrong please try again later'
-        })
+
+    // Fetch session details and its associated exercises
+    async getSessionDetails() {
+      try {
+        const response = await Api.get(`/sessions/${this.$route.params.sessionid}`)
+        this.form.name = response.data.name
+        this.form.duration = response.data.duration
+        this.form.date = this.formatDate(response.data.date)
+        this.form.selectedExercises = response.data.exercises
+
+        // Fetch full exercise details for the session
+        this.getExercisesForSession(this.form.selectedExercises)
+      } catch (error) {
+        this.errorMessage = 'Sorry something went wrong, please try again later'
+      }
     },
 
-    async getAllExercises() {
+    // Fetch detailed exercise data for the session
+    async getExercisesForSession(exerciseIds) {
       try {
         const response = await Api.get('/exercises')
-        this.exercises = response.data.map((ex) => {
-          return {
-            text: `${ex.name}   -   - ${ex.instruction}`,
-            value: ex._id,
-            instruction: ex.instruction
-          }
-        })
+        // Filter exercises to include only the ones in `selectedExercises`
+        this.exercises = response.data.filter((ex) =>
+          exerciseIds.includes(ex._id)
+        )
       } catch (error) {
-        this.errorMessage = 'Sorry something went wrong please try again later'
+        this.errorMessage = 'Sorry something went wrong, please try again later'
+      }
+    },
+
+    // Show file in a modal
+    showFilePreview(exercise) {
+      this.previewFileContent = exercise.fileContent
+      this.previewFileType = exercise.fileType
+      this.showModal = true
+
+      // Set modal size and title based on file type
+      if (exercise.fileType.startsWith('image')) {
+        this.modalSize = 'sm'
+        this.modalTitle = 'Image Preview'
+      } else if (exercise.fileType.startsWith('video')) {
+        this.modalSize = 'lg'
+        this.modalTitle = 'Video Preview'
+      } else {
+        this.modalSize = 'md'
+        this.modalTitle = 'File Preview'
       }
     }
   }
@@ -110,8 +162,50 @@ export default {
 </script>
 
 <style>
-.add-button {
-  display: flex;
-  gap: 5px;
+/* Header Styling */
+h3 {
+  text-align: center;
+  margin-bottom: 1em;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Table Styling */
+.exercises-table {
+  margin-top: 1em;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.exercises-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* File Preview Button */
+.file-preview-btn {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.file-preview-btn:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+/* Modal Styling */
+.img-preview {
+  max-width: 100%;
+  height: auto;
+}
+
+.video-preview {
+  width: 100%;
+  height: 300px; /* Adjust height as needed */
+}
+
+/* Error Message */
+.b-alert {
+  text-align: center;
+  margin-bottom: 1em;
 }
 </style>

@@ -27,8 +27,18 @@
             </b-nav-item>
           </b-navbar-nav>
 
-          <!-- Profile Dropdown, aligned to the right -->
+          <!-- Right-aligned Items -->
           <b-navbar-nav class="nav-right">
+            <!-- Simple Mode Toggle -->
+            <b-nav-item @click="toggleSimpleMode">
+              <b-icon icon="eye"></b-icon> {{ simpleModeLabel }}
+            </b-nav-item>
+            <!-- TTS Welcome Message -->
+            <b-nav-item @click="speakText('Welcome to Fitness Tracker!')">
+              <b-icon icon="volume-up"></b-icon> Read Welcome
+            </b-nav-item>
+
+            <!-- User Authentication Links -->
             <b-nav-item v-if="!isLoggedIn">
               <router-link to="/login">Log in</router-link>
             </b-nav-item>
@@ -59,32 +69,57 @@
   </div>
 </template>
 
-
 <script>
 import { Api } from '@/Api';
+import { playFeedbackSound } from '@/feedback';
+import { speakText } from '@/tts'; // Import Text-to-Speech utility
 
 export default {
   data() {
     return {
-      isLoggedIn: localStorage.getItem('token') != null
+      isLoggedIn: localStorage.getItem('token') != null,
+      isSimpleMode: false // State for Simple Mode
     };
   },
+  computed: {
+    // Dynamically update the label for Simple Mode toggle
+    simpleModeLabel() {
+      return this.isSimpleMode ? 'Disable Simple Mode' : 'Enable Simple Mode';
+    }
+  },
   methods: {
+    toggleSimpleMode() {
+      this.isSimpleMode = !this.isSimpleMode;
+      document.body.classList.toggle('simple-mode', this.isSimpleMode);
+    },
+    speakText(message) {
+      console.log('Vue speakText method called with:', message); // Debugging log
+      try {
+        speakText(message);
+      } catch (error) {
+        console.error('Error in Text-to-Speech:', error);
+        alert('An error occurred while trying to read the text.');
+      }
+    },
+    handleSuccess() {
+      playFeedbackSound('success'); // Play success sound
+      console.log('Success action triggered!');
+    },
+    handleError() {
+      playFeedbackSound('error'); // Play error sound
+      console.error('Error action triggered!');
+    },
     deleteAccount() {
       if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
         const token = localStorage.getItem('token');
         let userId;
         try {
           userId = this.decodeUserIdFromToken(token);
-          console.log('Token:', token);
         } catch (err) {
-          console.error('Failed to decode user ID from token:', err);
           alert('Invalid user session. Please log in again.');
           this.logout();
           return;
         }
-        console.log('Token:', token);
-
         Api.delete(`/users/${userId}`, {
           headers: { Authorization: token }
         })
@@ -93,8 +128,7 @@ export default {
             alert('Your account has been successfully deleted.');
             window.location.href = '/signup';
           })
-          .catch((error) => {
-            console.error('Error deleting account:', error);
+          .catch(() => {
             alert('Failed to delete account. Please try again later.');
           });
       }
@@ -103,21 +137,8 @@ export default {
       if (!token) {
         throw new Error('Token is missing or invalid.');
       }
-
       const [encryptedUserId] = token.split(':');
-      if (!encryptedUserId) {
-        throw new Error('Invalid token format.');
-      }
-
-      try {
-        if (!/^[a-fA-F0-9]{24}$/.test(encryptedUserId)) {
-          throw new Error('Invalid ObjectId format');
-        }
-        return encryptedUserId;
-      } catch (err) {
-        console.error('Failed to decode user ID from token:', err);
-        throw err;
-      }
+      return encryptedUserId;
     },
     logout() {
       localStorage.removeItem('token');
@@ -126,6 +147,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 /* Navbar Background and Text */
 .b-navbar {
@@ -175,6 +197,16 @@ export default {
   letter-spacing: 0.5px; /* Slightly spaced for clarity */
   font-size: 1.1rem; /* Slightly larger font for readability */
   margin: 0 10px; /* Adds spacing between items */
+}
+
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
 }
 
 .b-navbar-nav a:hover {

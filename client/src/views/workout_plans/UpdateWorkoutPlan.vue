@@ -92,6 +92,7 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       const isFormValid =
         this.validateField('type') && this.validateField('duration')
 
@@ -112,6 +113,7 @@ export default {
     },
     onReset(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.type = ''
       this.form.duration = ''
       this.errorMessage = ''

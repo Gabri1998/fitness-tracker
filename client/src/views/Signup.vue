@@ -38,7 +38,7 @@
       </b-form-group>
 
       <div class="signup-button">
-        <b-button v-b-tooltip.hover type="submit" variant="primary">Sign Up</b-button>
+        <b-button v-b-tooltip.hover type="submit" variant="primary">{{ $t('signup') }}</b-button>
         <b-button v-b-tooltip.hover type="reset" variant="danger">Reset</b-button>
       </div>
     </b-form>
@@ -72,6 +72,7 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault();
+      if (navigator.vibrate) navigator.vibrate(50);
       if (
         !this.validateField('name') ||
         !this.validateField('email') ||
@@ -90,6 +91,7 @@ export default {
     },
     onReset(event) {
       event.preventDefault();
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.name = '';
       this.form.email = '';
       this.form.password = '';

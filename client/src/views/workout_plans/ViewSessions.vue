@@ -112,6 +112,7 @@ export default {
         })
     },
     deleteWorkoutPlan() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(
         this.workoutDetails.links.find((li) => li.method === 'DELETE').href
       )
@@ -123,6 +124,7 @@ export default {
         })
     },
     deleteSession(sessionid) {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(`/sessions/${sessionid}`)
         .then(() => {
           this.getSessions()
@@ -134,7 +136,7 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style>
 /* General Header Styling */
 .header-container {
   margin-bottom: 1em;

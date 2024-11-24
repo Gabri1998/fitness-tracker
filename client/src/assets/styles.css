@@ -1,39 +1,64 @@
-/* styles.css */
-
 /* Typography */
 body {
   font-family: 'Roboto', sans-serif;
-  color: #333;
+  color: #333; /* Default text color */
+  background-color: #f9f9f9; /* Default background */
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
 }
 
-/* Global button styles */
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+/* General Button Styles */
 button {
+  font-family: inherit; /* Match button font to the document */
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
   background-color: #0069d9;
+  color: white;
   transform: scale(1.05);
-  color: #fff;
 }
 
-/* Card Styles */
+/* Accessibility Enhancements */
+.color-blind-friendly {
+  background-color: #d9e6f2; /* Soft blue */
+  border: 2px solid #0057b8; /* Strong blue for contrast */
+}
+
+.btn.color-blind-friendly {
+  background-color: #007bff; /* Accessible blue */
+  color: white;
+  border: 2px solid #0056b3; /* High-contrast border */
+}
+
+.btn.color-blind-friendly:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  border-color: #003d80;
+}
+
+/* Cards */
 .card {
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 16px;
   background-color: #fff;
-  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Table Styling */
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -55,9 +80,182 @@ td {
   border-bottom: 1px solid #ddd;
 }
 
+/* Navbar Background and Text */
+.b-navbar {
+  background-color: #f57c00; /* Warm orange for high contrast */
+  border-bottom: 3px solid #e65100; /* Slightly darker orange for separation */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Navbar Brand */
+.b-navbar-brand {
+  color: #ffffff !important; /* White for maximum visibility */
+  font-weight: bold;
+}
+
+.b-navbar-brand:hover {
+  color: #ffe0b2 !important; /* Light orange for hover effect */
+}
+
+/* Navbar Links */
+.b-navbar-nav a {
+  color: #ffffff !important; /* Bright white for high contrast */
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.1rem;
+  margin: 0 10px;
+}
+
+.b-navbar-nav a:hover {
+  color: #ffe0b2 !important; /* Light orange on hover */
+  text-decoration: underline;
+  background-color: rgba(255, 224, 178, 0.1); /* Subtle hover background */
+}
+
+.b-navbar-nav a:focus {
+  color: #ffffff !important;
+  background-color: #e65100; /* Darker orange for focus */
+  outline: 2px solid #ffd54f; /* Yellow focus ring */
+  outline-offset: 2px;
+}
+
+/* Profile Dropdown Toggle */
+.profile-dropdown-toggle {
+  font-weight: bold;
+  color: #ffffff !important;
+}
+
+.profile-dropdown-toggle:hover {
+  text-decoration: underline;
+  color: #ffe0b2 !important;
+}
+
+.dropdown-menu-custom {
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  color: #ffffff !important;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Dropdown Items */
+.dropdown-item-delete,
+.dropdown-item-logout {
+  font-weight: bold;
+  color: #ffffff !important;
+}
+
+.dropdown-item-delete:hover {
+  background-color: #ffe5e5;
+  color: #cc0000 !important;
+}
+
+.dropdown-item-logout:hover {
+  background-color: #d4f1f9;
+  color: #0d6efd !important;
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: flex;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  gap: 24px;
+  flex-direction: column;
+}
+
+.summary-cards section {
+  flex: 1;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  display: flex;
+  position: relative;
+}
+
+.summary-cards section img {
+  width: 400px;
+  height: 400px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.summary-cards section div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  height: 400px;
+}
+
+.summary-cards section div h1 {
+  color: #1a1a1a; /* High contrast for text */
+}
+
+.summary-cards section div h1:hover {
+  color: #f57c00; /* Matches navbar for consistency */
+}
+
+.workout-card {
+  background: #e2caa1;
+}
+
+.session-card {
+  background: #fff3b0;
+  flex-direction: row-reverse;
+}
+
+.exercise-card {
+  background: #d3d3d3;
+}
+
+.workout-card:hover {
+  background-color: #87ceeb;
+}
+
+.session-card:hover {
+  background-color: #87ceeb;
+}
+
+.exercise-card:hover {
+  background-color: #87ceeb;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  background-color: #333333; /* Dark background */
+  color: white; /* High contrast text */
+}
+
+/* Forms */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Simple Mode */
 .simple-mode h1,
+.simple-mode h2,
+.simple-mode h3,
 .simple-mode p {
   font-size: 1.5rem;
+  line-height: 1.8;
 }
 
 .simple-mode button {
@@ -67,4 +265,28 @@ td {
 
 .simple-mode b-table {
   font-size: 1.2rem;
+}
+
+/* Mobile and Small Screens Adjustments */
+@media (max-width: 960px) {
+  .summary-cards section img {
+    width: 200px;
+    height: 200px;
+  }
+  .summary-cards section div {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards section img {
+    width: 100%;
+    height: 200px;
+    position: absolute;
+    opacity: 0.2;
+  }
+  .summary-cards section div {
+    height: 200px;
+    z-index: 1;
+  }
 }

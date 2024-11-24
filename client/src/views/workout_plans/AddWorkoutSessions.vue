@@ -133,7 +133,7 @@ export default {
     // Handle form submission
     async onSubmit(event) {
       event.preventDefault()
-
+      if (navigator.vibrate) navigator.vibrate(50);
       // Validate form
       const isFormValid =
         this.validateField('name') &&
@@ -167,6 +167,7 @@ export default {
     // Reset form fields
     onReset(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.name = ''
       this.form.duration = ''
       this.form.date = ''
@@ -190,7 +191,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 /* General Styling */
 .add-button {
   display: flex;

@@ -72,6 +72,7 @@ export default {
   methods: {
     async onSubmit(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       const formData = new FormData()
       formData.append('name', this.form.name)
       formData.append('level', this.form.level)
@@ -92,6 +93,7 @@ export default {
     },
     onReset(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.name = ''
       this.form.level = ''
       this.form.instruction = ''

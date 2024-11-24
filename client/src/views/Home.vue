@@ -1,27 +1,27 @@
 <template>
   <div>
-    <h3>Profile</h3>
+    <h3>{{ $t('pageTitleHome') }}</h3>
     <b-table striped hover :items="users" :fields="fields"></b-table>
 
     <div class="summary-cards">
       <section class="workout-card">
         <img src="/workoutplans.jpg" alt="" />
         <div>
-          <h1>Workout Plans</h1>
+          <h1>{{ $t('totalworkoutPlans') }}</h1>
           <h1>{{ this.summary.workoutCount }}</h1>
         </div>
       </section>
       <section class="session-card">
         <img src="sessions.jpg" alt="" />
         <div>
-          <h1>Total Sessions</h1>
+          <h1>{{ $t('totalSessions') }}</h1>
           <h1>{{ this.summary.sessionCount }}</h1>
         </div>
       </section>
       <section class="exercise-card">
         <img src="/exercises.jpg" alt="" />
         <div>
-          <h1>Selected Exercises</h1>
+          <h1>{{ $t('selectedExercises') }}</h1>
           <h1>{{ this.summary.exerciseCount }}</h1>
         </div>
       </section>

@@ -34,10 +34,10 @@
       <!-- Login and Reset Buttons -->
       <div class="login-button">
         <b-button v-b-tooltip.hover title="Submit your credentials" type="submit" variant="primary">
-          Login
+          {{ $t('login') }}
         </b-button>
         <b-button v-b-tooltip.hover title="Clear all fields" type="reset" variant="danger">
-          Reset
+          {{ $t('reset') }}
         </b-button>
       </div>
     </b-form>
@@ -73,6 +73,7 @@ export default {
     async onSubmit(event) {
       event.preventDefault();
       try {
+        if (navigator.vibrate) navigator.vibrate(50);
         const response = await Api.post('/auth/login', {
           username: this.form.username,
           password: this.form.password
@@ -93,6 +94,7 @@ export default {
     // Reset the form
     onReset(event) {
       event.preventDefault();
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.username = '';
       this.form.password = '';
       this.errorMessage = '';

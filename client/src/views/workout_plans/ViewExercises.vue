@@ -116,6 +116,7 @@ export default {
         })
     },
     deleteAllExercise() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete('/exercises')
         .then(() => {
           this.exercises = []
@@ -125,6 +126,7 @@ export default {
         })
     },
     deleteExercise(exerciseid) {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(`/exercises/${exerciseid}`)
         .then(() => {
           this.getExercises()
@@ -134,6 +136,7 @@ export default {
         })
     },
     showFilePreview(exercise) {
+      if (navigator.vibrate) navigator.vibrate(50);
       this.previewFileContent = exercise.fileContent
       this.previewFileType = exercise.fileType
       this.showModal = true

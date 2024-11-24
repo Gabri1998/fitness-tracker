@@ -114,7 +114,7 @@ export default {
     // Handle form submission
     async onSubmit(event) {
       event.preventDefault();
-
+      if (navigator.vibrate) navigator.vibrate(50);
       // Check if the form is valid before submitting
       const isFormValid =
         this.validateField('name') &&
@@ -147,6 +147,7 @@ export default {
     // Reset form fields
     onReset(event) {
       event.preventDefault();
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.name = '';
       this.form.level = '';
       this.form.instruction = '';

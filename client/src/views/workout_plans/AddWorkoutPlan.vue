@@ -92,7 +92,7 @@ export default {
     // Submit form
     async onSubmit(event) {
       event.preventDefault()
-
+      if (navigator.vibrate) navigator.vibrate(50);
       // Validate form before submission
       const isFormValid = this.validateField('type') && this.validateField('duration')
       if (!isFormValid) {
@@ -114,6 +114,7 @@ export default {
     // Reset form fields
     onReset(event) {
       event.preventDefault()
+      if (navigator.vibrate) navigator.vibrate(50);
       this.form.type = ''
       this.form.duration = ''
       this.errorMessage = ''

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Workout Plans</h3>
+    <h3>{{ $t('pageTitleWorkoutPlans') }}</h3>
 
     <!-- Display Error Message -->
     <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
@@ -78,6 +78,7 @@ export default {
   },
   methods: {
     getWorkoutPlans() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.get('/workoutplans')
         .then((response) => {
           this.workoutPlans = response.data
@@ -87,6 +88,7 @@ export default {
         })
     },
     deleteWorkoutPlans() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete('/workoutplans')
         .then(() => {
           this.workoutPlans = []

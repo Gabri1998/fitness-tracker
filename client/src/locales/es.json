@@ -14,9 +14,9 @@
     "language": "Idioma",
     "languageEnglish": "Inglés",
     "languageSpanish": "Español",
-    "pageTitleHome": "Inicio - Rastreador de Fitness",
-    "pageTitleWorkoutPlans": "Planes de Entrenamiento - Rastreador de Fitness",
-    "pageTitleExercisesList": "Lista de Ejercicios - Rastreador de Fitness",
+    "pageTitleHome": "Inicio",
+    "pageTitleWorkoutPlans": "Planes de Entrenamiento",
+    "pageTitleExercisesList": "Lista de Ejercicios",
     "pageTitleLogin": "Iniciar Sesión - Rastreador de Fitness",
     "pageTitleSignup": "Registrarse - Rastreador de Fitness",
     "name": "Nombre",
@@ -28,6 +28,8 @@
     "totalworkoutPlans": "Planes de Entrenamiento",
     "totalSessions": "Sesiones Totales",
     "selectedExercises": "Ejercicios Seleccionados",
-    "reset": "Restablecer"
+    "reset": "Restablecer",
+    "exercises":"ceremonias",
+    "session":"Sesion"
   }
   

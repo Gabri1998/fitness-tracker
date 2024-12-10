@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Display error message for overall submission errors -->
+    <!-- Display error message for submission errors -->
     <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
 
     <!-- Form -->
@@ -51,7 +51,7 @@
         </b-form-invalid-feedback>
       </b-form-group>
 
-      <!-- File Upload Field (Optional) -->
+      <!-- File Upload Field -->
       <b-form-group id="input-group-4" label="Upload File (Optional)" label-for="input-4">
         <b-form-file
           id="input-4"
@@ -61,15 +61,14 @@
           drop-placeholder="Drop file here..."
           class="file-upload"
         ></b-form-file>
-        <!-- No validation feedback for optional field -->
       </b-form-group>
 
       <!-- Buttons -->
       <div class="add-button">
-        <b-button v-b-tooltip.hover title="Submit the exercise" type="submit" variant="primary" class="btn-primary">
+        <b-button type="submit" variant="primary" class="btn-primary" v-b-tooltip.hover title="Submit the exercise">
           Add
         </b-button>
-        <b-button v-b-tooltip.hover title="Clear the form fields" type="reset" variant="danger" class="btn-danger">
+        <b-button type="reset" variant="danger" class="btn-danger" v-b-tooltip.hover title="Clear the form fields">
           Reset
         </b-button>
       </div>
@@ -93,29 +92,18 @@ export default {
     }
   },
   methods: {
-    // Validate individual fields in real-time
     validateField(field) {
-      if (field === 'name') {
-        return this.form.name.trim().length > 0;
-      }
-      if (field === 'level') {
-        return this.form.level > 0;
-      }
-      if (field === 'instruction') {
-        return this.form.instruction.trim().length > 0;
-      }
-      // File field is optional, so always return true
-      if (field === 'file') {
-        return true;
-      }
+      if (field === 'name') return this.form.name.trim().length > 0;
+      if (field === 'level') return this.form.level > 0;
+      if (field === 'instruction') return this.form.instruction.trim().length > 0;
+      if (field === 'file') return true; // Optional field
       return true;
     },
 
-    // Handle form submission
     async onSubmit(event) {
       event.preventDefault();
       if (navigator.vibrate) navigator.vibrate(50);
-      // Check if the form is valid before submitting
+
       const isFormValid =
         this.validateField('name') &&
         this.validateField('level') &&
@@ -130,9 +118,7 @@ export default {
       formData.append('name', this.form.name);
       formData.append('level', this.form.level);
       formData.append('instruction', this.form.instruction);
-      if (this.form.file) {
-        formData.append('file', this.form.file); // Append file only if it exists
-      }
+      if (this.form.file) formData.append('file', this.form.file);
 
       try {
         await Api.post('/exercises', formData, {
@@ -144,10 +130,10 @@ export default {
       }
     },
 
-    // Reset form fields
     onReset(event) {
       event.preventDefault();
       if (navigator.vibrate) navigator.vibrate(50);
+
       this.form.name = '';
       this.form.level = '';
       this.form.instruction = '';
@@ -161,55 +147,56 @@ export default {
 <style>
 /* Add contrast to input borders */
 .form-input {
-  border: 2px solid #ced4da;
+  border: 2px solid var(--secondary-color);
   border-radius: 4px;
+  transition: border-color 0.3s ease;
 }
 
 .form-input:focus {
-  border-color: #007bff;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 /* Style the file upload field */
 .file-upload {
-  border: 2px dashed #ced4da;
+  border: 2px dashed var(--secondary-color);
   border-radius: 4px;
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: var(--background-color);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .file-upload:hover {
-  border-color: #007bff;
-  background-color: #e9ecef;
+  border-color: var(--primary-color);
+  background-color: var(--secondary-color);
 }
 
 /* Improve error message visibility */
 .error-icon {
-  color: #ff4d4f;
+  color: var(--primary-color);
   margin-right: 5px;
 }
 
 /* Button styles */
 .btn-primary {
-  background-color: #007bff;
-  border: none;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--background-color);
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: var(--secondary-color);
 }
 
 .btn-danger {
-  background-color: #dc3545;
-  border: none;
-  color: white;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
 }
 
 .btn-danger:hover {
-  background-color: #a71d2a;
+  background-color: #a71d2a; /* Optional darker hover for danger */
 }
 
+/* Add-button container */
 .add-button {
   display: flex;
   gap: 10px;

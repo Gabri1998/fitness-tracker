@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Session Name -->
-    <h3>Session: {{ form.name }}</h3>
+    <h3>{{ $t('session') }} : {{ form.name }}</h3>
     <hr />
 
     <!-- Exercises Table -->
@@ -166,30 +166,23 @@ export default {
 h3 {
   text-align: center;
   margin-bottom: 1em;
-  color: #333;
+  color: var(--text-color); /* Use global text color */
   font-weight: bold;
 }
 
 /* Table Styling */
 .exercises-table {
   margin-top: 1em;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.exercises-table tbody tr:hover {
-  background-color: #f5f5f5;
 }
 
 /* File Preview Button */
 .file-preview-btn {
-  color: #007bff;
+  color: var(--primary-color); /* Use global variable for color */
   text-decoration: none;
 }
 
 .file-preview-btn:hover {
   text-decoration: underline;
-  color: #0056b3;
 }
 
 /* Modal Styling */
@@ -200,7 +193,7 @@ h3 {
 
 .video-preview {
   width: 100%;
-  height: 300px; /* Adjust height as needed */
+  height: 300px;
 }
 
 /* Error Message */

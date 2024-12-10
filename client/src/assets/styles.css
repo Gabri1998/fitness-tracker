@@ -1,56 +1,255 @@
-/* Typography */
-body {
-  font-family: 'Roboto', sans-serif;
-  color: #333; /* Default text color */
-  background-color: #f9f9f9; /* Default background */
-  margin: 0;
-  padding: 0;
+/* Root Variables: Default Colors */
+:root {
+  --primary-color: #007bff; /* Default primary color */
+  --secondary-color: #6c757d; /* Default secondary color */
+  --background-color: #ffffff; /* Default background */
+  --text-color: #212529; /* Default text color */
+  --button-bg: var(--primary-color); /* Button background */
+  --button-hover-bg: var(--secondary-color); /* Button hover background */
+  --button-text: var(--background-color); /* Button text color */
+  --link-text: var(--primary-color); /* Link text color */
+  --link-hover-bg: var(--secondary-color); /* Link hover background */
+  --table-header-bg: var(--primary-color); /* Table header background */
+  --table-header-text: var(--background-color); /* Table header text */
 }
 
-/* Headings */
+/* Protanopia Mode (Red-Weak) */
+body.protanopia {
+  --primary-color: #ff8c00;
+  --secondary-color: #006d77;
+  --background-color: #fff7e6;
+  --text-color: #1d3557;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: linear-gradient(to bottom, #fff7e6, #ffe4b5);
+}
+
+/* Deuteranopia Mode (Green-Weak) */
+body.deuteranopia {
+  --primary-color: #ffb300;
+  --secondary-color: #8b4513;
+  --background-color: #faf3dd;
+  --text-color: #2e2e2e;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: linear-gradient(to right, #faf3dd, #fff4cc);
+}
+
+/* Tritanopia Mode (Blue-Weak) */
+body.tritanopia {
+  --primary-color: #006d2c;
+  --secondary-color: #cc8400;
+  --background-color: #e8f5e9;
+  --text-color: #0d3b66;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: repeating-linear-gradient(45deg, #e8f5e9, #dcedc8 10px, #e0e0e0 20px);
+}
+
+/* Achromatopsia Mode (No Color Perception) */
+body.achromatopsia {
+  --primary-color: #666666;
+  --secondary-color: #999999;
+  --background-color: #f7f7f7;
+  --text-color: #000000;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--text-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: #dcdcdc;
+}
+
+/* General Styling */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-weight: bold;
   line-height: 1.2;
 }
 
-/* General Button Styles */
-button {
-  font-family: inherit; /* Match button font to the document */
-  border: none;
-  border-radius: 4px;
-  padding: 10px 20px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+/* Navbar */
+.navbar, .header-container {
+  background-color: var(--primary-color) !important;
 }
 
-button:hover {
-  background-color: #0069d9;
-  color: white;
+.navbar a, .header-container h1 {
+  color: var(--background-color) !important;
+}
+
+.navbar a:hover {
+  color: var(--text-color) !important;
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Base Button Styles */
+button, .btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 2px solid var(--button-border);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover Effect */
+button:hover, .btn:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--button-hover-text);
   transform: scale(1.05);
 }
 
-/* Accessibility Enhancements */
-.color-blind-friendly {
-  background-color: #d9e6f2; /* Soft blue */
-  border: 2px solid #0057b8; /* Strong blue for contrast */
+/* Disabled Buttons */
+button:disabled, .btn:disabled {
+  background-color: var(--button-disabled-bg);
+  color: var(--button-disabled-text);
+  border: 2px solid var(--button-disabled-border);
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.btn.color-blind-friendly {
-  background-color: #007bff; /* Accessible blue */
-  color: white;
-  border: 2px solid #0056b3; /* High-contrast border */
+/* Primary Buttons */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--button-primary-text);
+  border-color: var(--primary-color);
 }
 
-.btn.color-blind-friendly:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-  border-color: #003d80;
+.btn-primary:hover {
+  background-color: var(--primary-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Danger Buttons */
+.btn-danger {
+  background-color: var(--danger-color);
+  color: var(--button-danger-text);
+  border-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Success Buttons */
+.btn-success {
+  background-color: var(--success-color);
+  color: var(--button-success-text);
+  border-color: var(--success-color);
+}
+
+.btn-success:hover {
+  background-color: var(--success-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Outline Buttons */
+.btn-outline-danger {
+  background-color: transparent;
+  color: var(--danger-color);
+  border: 2px solid var(--danger-color);
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--danger-color);
+  color: var(--background-color);
+}
+
+
+/* Links Styling */
+a, .add-link {
+  color: var(--link-text);
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+a:hover, .add-link:hover {
+  background-color: var(--link-hover-bg);
+  color: var(--background-color);
+  transform: scale(1.05);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  padding: 10px;
+  text-align: left;
+}
+
+td {
+  border-bottom: 1px solid var(--secondary-color);
+  padding: 10px;
+}
+
+tr:hover {
+  background-color: var(--secondary-color);
+  color: var(--background-color);
+}
+
+/* Forms */
+input, textarea, select {
+  border: 2px solid var(--secondary-color);
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.b-form-invalid-feedback {
+  color: #d9534f;
+}
+
+.b-form-valid-feedback {
+  color: #5cb85c;
 }
 
 /* Cards */
 .card {
+  background-color: var(--background-color);
+  color: var(--text-color);
   border-radius: 8px;
-  padding: 16px;
-  background-color: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -58,111 +257,26 @@ button:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Tables */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 16px 0;
+/* Tooltip */
+.tooltip-inner {
+  background-color: var(--text-color);
+  color: var(--background-color);
 }
 
-th,
-td {
-  text-align: left;
-  padding: 8px;
+.tooltip-arrow {
+  border-top-color: var(--text-color);
 }
 
-th {
-  background-color: #007bff;
-  color: white;
-}
-
-td {
-  border-bottom: 1px solid #ddd;
-}
-
-/* Navbar Background and Text */
-.b-navbar {
-  background-color: #f57c00; /* Warm orange for high contrast */
-  border-bottom: 3px solid #e65100; /* Slightly darker orange for separation */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Navbar Brand */
-.b-navbar-brand {
-  color: #ffffff !important; /* White for maximum visibility */
-  font-weight: bold;
-}
-
-.b-navbar-brand:hover {
-  color: #ffe0b2 !important; /* Light orange for hover effect */
-}
-
-/* Navbar Links */
-.b-navbar-nav a {
-  color: #ffffff !important; /* Bright white for high contrast */
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 1.1rem;
-  margin: 0 10px;
-}
-
-.b-navbar-nav a:hover {
-  color: #ffe0b2 !important; /* Light orange on hover */
-  text-decoration: underline;
-  background-color: rgba(255, 224, 178, 0.1); /* Subtle hover background */
-}
-
-.b-navbar-nav a:focus {
-  color: #ffffff !important;
-  background-color: #e65100; /* Darker orange for focus */
-  outline: 2px solid #ffd54f; /* Yellow focus ring */
-  outline-offset: 2px;
-}
-
-/* Profile Dropdown Toggle */
-.profile-dropdown-toggle {
-  font-weight: bold;
-  color: #ffffff !important;
-}
-
-.profile-dropdown-toggle:hover {
-  text-decoration: underline;
-  color: #ffe0b2 !important;
-}
-
-.dropdown-menu-custom {
-  background-color: #1a1a1a;
-  border: 1px solid #444;
-  color: #ffffff !important;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-/* Dropdown Items */
-.dropdown-item-delete,
-.dropdown-item-logout {
-  font-weight: bold;
-  color: #ffffff !important;
-}
-
-.dropdown-item-delete:hover {
-  background-color: #ffe5e5;
-  color: #cc0000 !important;
-}
-
-.dropdown-item-logout:hover {
-  background-color: #d4f1f9;
-  color: #0d6efd !important;
+/* Modal Content */
+.img-preview, .video-preview {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Summary Cards */
 .summary-cards {
   display: flex;
-  padding-top: 24px;
-  padding-bottom: 24px;
+  padding: 24px 0;
   gap: 24px;
   flex-direction: column;
 }
@@ -172,6 +286,7 @@ td {
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
   display: flex;
   position: relative;
+  background-color: var(--background-color);
 }
 
 .summary-cards section img {
@@ -188,83 +303,11 @@ td {
   align-items: center;
   flex: 1;
   height: 400px;
-}
-
-.summary-cards section div h1 {
-  color: #1a1a1a; /* High contrast for text */
+  color: var(--text-color);
 }
 
 .summary-cards section div h1:hover {
-  color: #f57c00; /* Matches navbar for consistency */
-}
-
-.workout-card {
-  background: #e2caa1;
-}
-
-.session-card {
-  background: #fff3b0;
-  flex-direction: row-reverse;
-}
-
-.exercise-card {
-  background: #d3d3d3;
-}
-
-.workout-card:hover {
-  background-color: #87ceeb;
-}
-
-.session-card:hover {
-  background-color: #87ceeb;
-}
-
-.exercise-card:hover {
-  background-color: #87ceeb;
-}
-
-/* High Contrast Mode */
-.high-contrast {
-  background-color: #333333; /* Dark background */
-  color: white; /* High contrast text */
-}
-
-/* Forms */
-input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  padding: 8px;
-  width: 100%;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  outline: none;
-}
-
-/* Simple Mode */
-.simple-mode h1,
-.simple-mode h2,
-.simple-mode h3,
-.simple-mode p {
-  font-size: 1.5rem;
-  line-height: 1.8;
-}
-
-.simple-mode button {
-  font-size: 1.2rem;
-  padding: 0.8rem 1.5rem;
-}
-
-.simple-mode b-table {
-  font-size: 1.2rem;
+  color: var(--primary-color);
 }
 
 /* Mobile and Small Screens Adjustments */

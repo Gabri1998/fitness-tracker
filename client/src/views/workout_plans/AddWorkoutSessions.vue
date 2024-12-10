@@ -190,9 +190,8 @@ export default {
   }
 }
 </script>
-
 <style>
-/* General Styling */
+/* General Button Layout */
 .add-button {
   display: flex;
   gap: 10px;
@@ -200,30 +199,36 @@ export default {
 
 /* Submit Button Styling */
 .btn-submit {
-  background-color: #28a745; /* Green */
-  border: none;
-  color: white;
-  font-size: 16px;
+  background-color: var(--button-bg); /* Use global variable */
+  color: var(--button-text); /* Use global variable */
+  border: 2px solid var(--button-bg); /* Use global variable */
   border-radius: 4px;
+  font-size: 16px;
   font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-submit:hover {
-  background-color: #218838; /* Darker green */
+  background-color: var(--button-hover-bg); /* Hover background from global */
+  color: var(--background-color); /* Ensure text contrast on hover */
+  border-color: var(--button-hover-bg); /* Match hover border */
 }
 
 /* Reset Button Styling */
 .btn-reset {
-  background-color: #dc3545; /* Red */
-  border: none;
-  color: white;
-  font-size: 16px;
+  background-color: var(--secondary-color); /* Use global secondary color */
+  color: var(--background-color); /* Ensure contrast with background */
+  border: 2px solid var(--secondary-color);
   border-radius: 4px;
+  font-size: 16px;
   font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-reset:hover {
-  background-color: #c82333; /* Darker red */
+  background-color: #a71d2a; /* Slightly darker red for hover */
+  color: var(--background-color); /* Ensure text contrast */
+  border-color: #a71d2a;
 }
 
 /* Alert Styling */
@@ -231,10 +236,17 @@ export default {
   text-align: center;
   font-size: 14px;
   margin-bottom: 1em;
+  color: var(--text-color); /* Ensure alert text matches global mode */
+  background-color: var(--background-color); /* Use global background */
+  border: 1px solid var(--secondary-color); /* Use global secondary color */
 }
 
 /* Tooltip Styling */
 [role='tooltip'] {
   font-size: 14px;
+  color: var(--background-color); /* Match tooltip text to mode */
+  background-color: var(--text-color); /* Invert background for visibility */
+  border-radius: 4px;
+  padding: 5px;
 }
 </style>

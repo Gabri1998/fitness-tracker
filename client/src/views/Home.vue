@@ -82,12 +82,6 @@ export default {
 </script>
 
 <style>
-* {
-  color: rgb(10, 10, 127);
-}
-.btn_message {
-  margin-bottom: 1em;
-}
 .summary-cards {
   display: flex;
   padding-top: 24px;
@@ -125,16 +119,11 @@ export default {
 .exercise-card {
   background: #d3d3d3;
 }
-.workout-card:hover {
-  background-color: #87ceeb;
-}
-.session-card:hover {
-  background-color: #87ceeb;
-}
+.workout-card:hover,
+.session-card:hover,
 .exercise-card:hover {
   background-color: #87ceeb;
 }
-
 @media (max-width: 960px) {
   .summary-cards section img {
     width: 200px;

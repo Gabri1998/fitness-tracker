@@ -133,6 +133,13 @@ export default {
 </script>
 
 <style>
+/* Button Container Layout */
+.button-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
 /* General Button Styling */
 .accessible-button {
   font-size: 14px;
@@ -140,27 +147,30 @@ export default {
   border-radius: 4px;
   text-transform: uppercase;
   padding: 10px 20px;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .primary-button {
-  background-color: #007bff;
-  color: #ffffff;
-  border: 2px solid #007bff;
+  background-color: var(--button-bg); /* Global button background color */
+  color: var(--button-text); /* Global button text color */
+  border: 2px solid var(--button-bg);
 }
 
 .primary-button:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
+  background-color: var(--button-hover-bg); /* Global hover background */
+  color: var(--background-color); /* Contrast text on hover */
+  border-color: var(--button-hover-bg); /* Match hover background */
 }
 
 .danger-button {
-  background-color: #dc3545;
-  color: #ffffff;
-  border: 2px solid #dc3545;
+  background-color: var(--secondary-color); /* Global secondary color */
+  color: var(--background-color); /* Ensure contrast */
+  border: 2px solid var(--secondary-color);
 }
 
 .danger-button:hover {
-  background-color: #a71d2a;
+  background-color: #a71d2a; /* Use a darker red for hover */
+  color: var(--background-color);
   border-color: #a71d2a;
 }
 
@@ -173,15 +183,8 @@ export default {
 
 /* Form Feedback Styling */
 .b-form-invalid-feedback {
-  color: #e3342f;
+  color: var(--text-color); /* Use global text color for consistency */
   font-size: 12px;
   font-weight: bold;
-}
-
-/* Button Container */
-.button-container {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
 }
 </style>

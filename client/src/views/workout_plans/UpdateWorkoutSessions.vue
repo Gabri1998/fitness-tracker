@@ -214,38 +214,10 @@ export default {
 </script>
 
 <style>
-/* General Styling */
+/* Form Buttons Layout */
 .add-button {
   display: flex;
-  gap: 10px;
-}
-
-/* Submit Button Styling */
-.btn-submit {
-  background-color: #28a745; /* Green */
-  border: none;
-  color: white;
-  font-size: 16px;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.btn-submit:hover {
-  background-color: #218838; /* Darker green */
-}
-
-/* Reset Button Styling */
-.btn-reset {
-  background-color: #dc3545; /* Red */
-  border: none;
-  color: white;
-  font-size: 16px;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.btn-reset:hover {
-  background-color: #c82333; /* Darker red */
+  gap: 10px; /* Add spacing between buttons */
 }
 
 /* Alert Styling */
@@ -259,4 +231,37 @@ export default {
 [role='tooltip'] {
   font-size: 14px;
 }
+
+/* Dynamic Button Styling */
+.btn-submit {
+  background-color: var(--button-bg); /* Use global primary button background */
+  border: none;
+  color: var(--button-text); /* Use global button text color */
+  font-size: 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: var(--button-hover-bg); /* Use global hover background color */
+  color: var(--background-color); /* Ensure contrast on hover */
+}
+
+/* Reset Button Styling */
+.btn-reset {
+  background-color: var(--secondary-color); /* Use global secondary color */
+  border: none;
+  color: var(--background-color); /* Use global background color for text contrast */
+  font-size: 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-reset:hover {
+  background-color: #c82333; /* Darker red (for error-like buttons) */
+  color: var(--background-color);
+}
 </style>
+

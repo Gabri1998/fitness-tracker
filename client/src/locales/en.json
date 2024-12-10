@@ -14,9 +14,9 @@
     "language": "Language",
     "languageEnglish": "English",
     "languageSpanish": "Español",
-    "pageTitleHome": "Home - Fitness Tracker",
-    "pageTitleWorkoutPlans": "Workout Plans - Fitness Tracker",
-    "pageTitleExercisesList": "Exercises List - Fitness Tracker",
+    "pageTitleHome": "Home",
+    "pageTitleWorkoutPlans": "Workout Plans",
+    "pageTitleExercisesList": "Exercises List",
     "pageTitleLogin": "Login - Fitness Tracker",
     "pageTitleSignup": "Signup - Fitness Tracker",
     "name": "Name",
@@ -28,6 +28,7 @@
     "totalworkoutPlans": "Workout Plans",
     "totalSessions": "Total Sessions",
     "selectedExercises": "Selected Exercises",
-    "reset": "Reset"
+    "reset": "Reset",
+    "exercises":"exercises",
+    "session":"Session"
   }
-  

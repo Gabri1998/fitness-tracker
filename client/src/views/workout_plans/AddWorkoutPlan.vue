@@ -124,6 +124,7 @@ export default {
 </script>
 
 <style>
+/* Button Layout */
 .add-button {
   display: flex;
   gap: 10px;
@@ -131,28 +132,36 @@ export default {
 
 /* Submit Button Styling */
 .btn-submit {
-  background-color: #28a745; /* Green color */
-  border: none;
-  color: white;
-  font-size: 16px;
+  background-color: var(--button-bg); /* Use global button background */
+  color: var(--button-text); /* Use global button text color */
+  border: 2px solid var(--button-bg); /* Ensure consistent border */
   border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-submit:hover {
-  background-color: #218838; /* Darker green */
+  background-color: var(--button-hover-bg); /* Global hover background */
+  color: var(--background-color); /* Ensure contrast on hover */
+  border-color: var(--button-hover-bg);
 }
 
 /* Reset Button Styling */
 .btn-reset {
-  background-color: #dc3545; /* Red color */
-  border: none;
-  color: white;
-  font-size: 16px;
+  background-color: var(--secondary-color); /* Global secondary color */
+  color: var(--background-color); /* Ensure text contrast */
+  border: 2px solid var(--secondary-color);
   border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-reset:hover {
-  background-color: #c82333; /* Darker red */
+  background-color: #a71d2a; /* Darker red for hover */
+  color: var(--background-color); /* Ensure text contrast */
+  border-color: #a71d2a;
 }
 
 /* Tooltip Styling */
@@ -160,3 +169,4 @@ export default {
   font-size: 14px;
 }
 </style>
+

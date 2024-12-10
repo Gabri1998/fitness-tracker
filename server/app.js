@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
-const path = require("path");
+const path = require("path"); // Keep only this one declaration
 const cors = require("cors");
 const history = require("connect-history-api-fallback");
 const usersControllers = require("./src/controllers/usersController");
@@ -30,6 +30,7 @@ mongoose.connect(mongoURI).catch(function (err) {
 
 // Create Express app
 const app = express();
+app.use('/sounds', express.static(path.join(__dirname, 'public/sounds')));
 app.use(methodOverride("X-HTTP-Method-Override"));
 app.use(hateoasLinker);
 // Parse requests of content-type 'application/json'
@@ -43,7 +44,7 @@ app.use(cors());
 
 // Import routes
 app.get("/api", function (req, res) {
-  res.json({ message: "Welcome to group-02  backend ExpressJS project!" });
+  res.json({ message: "Welcome to group-02 backend ExpressJS project!" });
 });
 
 app.use("/api/v1/auth", Authentication);

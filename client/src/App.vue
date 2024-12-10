@@ -37,6 +37,18 @@
             <b-nav-item @click="speakText('Welcome to Fitness Tracker!')">
               <b-icon icon="volume-up"></b-icon> {{ $t('readWelcome') }}
             </b-nav-item>
+            <!-- Color Mode -->
+            <b-nav-item-dropdown
+            text="Color Mode"
+            right
+            menu-class="dropdown-menu-custom"
+             >
+            <b-dropdown-item @click="setColorMode('normal')">Normal Mode</b-dropdown-item>
+            <b-dropdown-item @click="setColorMode('protanopia')">Protanopia</b-dropdown-item>
+            <b-dropdown-item @click="setColorMode('deuteranopia')">Deuteranopia</b-dropdown-item>
+            <b-dropdown-item @click="setColorMode('tritanopia')">Tritanopia</b-dropdown-item>
+             </b-nav-item-dropdown>
+
 
             <!-- User Authentication Links -->
             <b-nav-item v-if="!isLoggedIn">
@@ -84,7 +96,34 @@ export default {
   data() {
     return {
       isLoggedIn: localStorage.getItem('token') != null,
-      isSimpleMode: false // State for Simple Mode
+      isSimpleMode: false, // State for Simple Mode
+      currentColorMode: 'normal', // Default mode
+      colorModes: {
+        normal: {
+          '--primary-color': '#007bff',
+          '--secondary-color': '#6c757d',
+          '--background-color': '#ffffff',
+          '--text-color': '#212529'
+        },
+        protanopia: {
+          '--primary-color': '#ffa500',
+          '--secondary-color': '#008080',
+          '--background-color': '#f5f5f5',
+          '--text-color': '#1c1c1c'
+        },
+        deuteranopia: {
+          '--primary-color': '#ffd700',
+          '--secondary-color': '#20b2aa',
+          '--background-color': '#fafafa',
+          '--text-color': '#121212'
+        },
+        tritanopia: {
+          '--primary-color': '#ffa500',
+          '--secondary-color': '#ff00ff',
+          '--background-color': '#fdfdfd',
+          '--text-color': '#101010'
+        }
+      }
     };
   },
   computed: {
@@ -102,6 +141,15 @@ export default {
     }
   },
   methods: {
+    setColorMode(mode) {
+      this.currentColorMode = mode;
+      const root = document.documentElement;
+      const colors = this.colorModes[mode];
+      for (const [key, value] of Object.entries(colors)) {
+        root.style.setProperty(key, value);
+      }
+      localStorage.setItem('colorMode', mode); // Save the mode
+    },
     changeLanguage(lang) {
       this.$i18n.locale = lang;
     },
@@ -170,6 +218,10 @@ export default {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+  },
+  mounted() {
+    const savedMode = localStorage.getItem('colorMode') || 'normal';
+    this.setColorMode(savedMode);
   }
 };
 </script>

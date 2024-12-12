@@ -139,4 +139,19 @@ h3 {
 [role='tooltip'] {
   font-size: 14px;
 }
+
+/* simple mode */
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+}
 </style>

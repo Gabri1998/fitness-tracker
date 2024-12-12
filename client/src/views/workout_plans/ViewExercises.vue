@@ -9,7 +9,7 @@
         v-b-tooltip.hover
         title="Delete all exercises"
       >
-        Delete All
+      {{ $t('deleteAll') }}
       </b-button>
     </div>
 
@@ -23,7 +23,7 @@
             v-b-tooltip.hover
             title="View file"
           >
-            View File
+          {{ $t('viewFile') }}
           </b-button>
         </div>
         <div v-else>No File</div>
@@ -35,7 +35,7 @@
           v-b-tooltip.hover
           title="Update exercise"
         >
-          Update
+      {{ $t('update') }}
         </router-link>
         <b-button
           @click="deleteExercise(data.item._id)"
@@ -44,18 +44,20 @@
           v-b-tooltip.hover
           title="Delete exercise"
         >
-          Delete
+       {{ $t('delete') }}
         </b-button>
-      </template>
-    </b-table>
+        </template>
+       </b-table>
 
     <router-link
       to="/exercises/add"
+      v-tts="$t('addexercise')"
       class="btn add-link"
       v-b-tooltip.hover
       title="Add a new exercise"
+      @click="speakText('addexercise!')"
     >
-      Add Exercise
+    {{ $t('addexercise') }}
     </router-link>
 
     <!-- File preview modal -->
@@ -155,6 +157,22 @@ export default {
 </script>
 
 <style>
+
+/*simple mode*/
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+}
+
 .btn-container {
   display: flex;
   justify-content: flex-end;
@@ -199,4 +217,7 @@ export default {
 .tooltip-arrow {
   border-top-color: var(--text-color);
 }
+
+
+
 </style>

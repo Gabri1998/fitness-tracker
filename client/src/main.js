@@ -6,10 +6,11 @@ import VueI18n from 'vue-i18n';
 import en from './locales/en.json';
 import es from './locales/es.json';
 import './assets/styles.css';
-
+import { speakText } from './tts';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
+Vue.prototype.$speakText = speakText;
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(VueI18n);
@@ -23,6 +24,15 @@ const i18n = new VueI18n({
 });
 
 Vue.config.productionTip = false;
+
+Vue.directive('tts', {
+  bind(el, binding, vnode) {
+    const label = binding.value || el.textContent.trim();
+    el.setAttribute('aria-label', label);
+    el.classList.add('hoverable');
+  }
+});
+
 
 new Vue({
   i18n,

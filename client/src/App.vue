@@ -4,7 +4,6 @@
       <b-navbar toggleable="lg" type="dark" variant="info">
         <!-- Navbar Brand -->
         <b-navbar-brand href="/">{{ $t('welcome') }}</b-navbar-brand>
-
         <!-- Navbar Toggle Button -->
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -34,13 +33,14 @@
               <b-icon icon="eye"></b-icon> {{ simpleModeLabel }}
             </b-nav-item>
             <!-- TTS Welcome Message -->
-            <b-nav-item @click="speakText('Welcome to Fitness Tracker!')">
-              <b-icon icon="volume-up"></b-icon> {{ $t('readWelcome') }}
+            <b-nav-item @click="toggleScreenReader">
+              <b-icon :icon="isScreenReaderActive ? 'volume-off' : 'volume-up'"></b-icon>
+              {{ isScreenReaderActive ? $t('screenReaderOff') : $t('screenReaderOn') }}
             </b-nav-item>
             <!-- Color Mode -->
-            <b-nav-item-dropdown text="Color Mode" right menu-class="dropdown-menu-custom">
+            <b-nav-item-dropdown :text="$t('colormode')" right menu-class="dropdown-menu-custom">
               <b-dropdown-item @click="setColorMode('normal')">
-                Normal Mode <span v-if="currentColorMode === 'normal'">✓</span>
+                {{ $t('normalmode') }} <span v-if="currentColorMode === 'normal'">✓</span>
               </b-dropdown-item>
               <b-dropdown-item @click="setColorMode('protanopia')">
                 Protanopia <span v-if="currentColorMode === 'protanopia'">✓</span>
@@ -88,13 +88,13 @@
 
 <script>
 import { Api } from '@/Api';
-import { speakText } from '@/tts';
 
 export default {
   data() {
     return {
       isLoggedIn: localStorage.getItem('token') != null,
       isSimpleMode: false,
+      isScreenReaderActive: false,
       currentColorMode: 'normal',
       colorModes: {
         normal: {
@@ -144,8 +144,7 @@ export default {
   methods: {
     setColorMode(mode) {
       if (this.colorModes[mode]) {
-        const colors = this.colorModes[mode];
-        Object.entries(colors).forEach(([key, value]) => {
+        Object.entries(this.colorModes[mode]).forEach(([key, value]) => {
           document.documentElement.style.setProperty(key, value);
         });
         this.currentColorMode = mode;
@@ -157,8 +156,62 @@ export default {
       this.isSimpleMode = !this.isSimpleMode;
       document.getElementById('app').classList.toggle('simple-mode', this.isSimpleMode);
     },
+    toggleScreenReader() {
+      this.isScreenReaderActive = !this.isScreenReaderActive;
+      this.isScreenReaderActive ? this.enableScreenReader() : this.disableScreenReader();
+      console.log(`Screen Reader is now ${this.isScreenReaderActive ? 'enabled' : 'disabled'}`);
+    },
+    enableScreenReader() {
+      document.body.addEventListener('focusin', this.handleFocus);
+      document.body.addEventListener('mouseup', this.handleTextSelection);
+      document.body.addEventListener('mouseenter', this.handleHover, true);
+      document.body.addEventListener('mouseleave', this.clearSpeech, true);
+    },
+    disableScreenReader() {
+      document.body.removeEventListener('focusin', this.handleFocus);
+      document.body.removeEventListener('mouseup', this.handleTextSelection);
+      document.body.removeEventListener('mouseenter', this.handleHover, true);
+      document.body.removeEventListener('mouseleave', this.clearSpeech, true);
+      this.clearSpeech();
+    },
+    handleFocus(event) {
+      if (!this.isScreenReaderActive) return;
+      const text = event.target.getAttribute('aria-label') || event.target.textContent?.trim();
+      if (text) this.speakText(text);
+    },
+    handleTextSelection() {
+      if (!this.isScreenReaderActive) return;
+      const selectedText = window.getSelection().toString().trim();
+      if (selectedText) this.speakText(selectedText);
+    },
+    handleHover(event) {
+      if (!this.isScreenReaderActive) return;
+      const text = event.target.getAttribute('aria-label') || event.target.textContent?.trim();
+      if (text) this.speakText(text);
+    },
+    clearSpeech() {
+      if (window.speechSynthesis.speaking) {
+        console.log('Clearing ongoing speech...');
+        window.speechSynthesis.cancel();
+      }
+    },
     speakText(message) {
-      speakText(message);
+      if (!('speechSynthesis' in window)) {
+        alert(this.$t('ttsNotSupported'));
+        return;
+      }
+      const synth = window.speechSynthesis;
+      const voices = synth.getVoices();
+      const lang = this.$i18n.locale;
+      const voice = voices.find((v) => v.lang.startsWith(lang)) || voices[0];
+
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.voice = voice;
+      utterance.lang = lang;
+
+      this.clearSpeech();
+      console.log(`Speaking: "${message}"`);
+      synth.speak(utterance);
     },
     changeLanguage(lang) {
       this.$i18n.locale = lang;
@@ -181,9 +234,23 @@ export default {
   mounted() {
     const savedMode = localStorage.getItem('colorMode') || 'normal';
     this.setColorMode(savedMode);
+
+    if ('speechSynthesis' in window) {
+      console.log('SpeechSynthesis API is supported.');
+    } else {
+      console.error('SpeechSynthesis API is not supported in this browser.');
+      return;
+    }
+
+    // Ensure proper screen reader event listeners
+    if (this.isScreenReaderActive) {
+      this.enableScreenReader();
+    }
   }
 };
 </script>
+
+
 <style>
 /* General Styling */
 body {
@@ -355,6 +422,26 @@ tr:hover {
 .img-preview, .video-preview {
   max-width: 100%;
   height: auto;
+}
+
+/*simple mode*/
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+}
+
+.simple-mode link {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
 }
 </style>
 

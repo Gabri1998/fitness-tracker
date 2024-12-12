@@ -3,7 +3,7 @@
     <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
 
     <b-form @submit="onSubmit" @reset="onReset" novalidate>
-      <b-form-group id="input-group-name" label="Your Name" label-for="input-name">
+      <b-form-group id="input-group-name" :label="$t('name')" label-for="input-name">
         <b-form-input
           id="input-name"
           v-model="form.name"
@@ -14,7 +14,7 @@
         <b-form-invalid-feedback>Name is required and must be at least 3 characters.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-email" label="Email address" label-for="input-email">
+      <b-form-group id="input-group-email" :label="$t('email')" label-for="input-email">
         <b-form-input
           id="input-email"
           v-model="form.email"
@@ -25,7 +25,7 @@
         <b-form-invalid-feedback>Enter a valid email address.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-password" label="Password" label-for="input-password">
+      <b-form-group id="input-group-password" :label="$t('password')" label-for="input-password">
         <b-form-input
           id="input-password"
           v-model="form.password"
@@ -39,7 +39,7 @@
 
       <div class="signup-button">
         <b-button v-b-tooltip.hover type="submit" variant="primary">{{ $t('signup') }}</b-button>
-        <b-button v-b-tooltip.hover type="reset" variant="danger">Reset</b-button>
+        <b-button v-b-tooltip.hover type="reset" variant="danger">{{ $t('reset') }}</b-button>
       </div>
     </b-form>
   </div>

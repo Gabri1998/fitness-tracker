@@ -60,5 +60,12 @@
   "noResultsFound": "No results found",
   "backToHome": "Back to Home",
   "selectOption": "Select an Option",
-  "welcomeMessage": "Welcome to the Fitness Tracker! Navigate through your plans and progress."
+  "welcomeMessage": "Welcome to the Fitness Tracker! Navigate through your plans and progress.",
+  "startListening": "Start Listening",
+  "stopListening": "Stop Listening",
+  "workoutName": "Workout Name",
+  "dictateHere": "Dictate here...",
+  "listeningMessage": "Listening... Please speak now."
+
+
 }

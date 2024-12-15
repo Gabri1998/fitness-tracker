@@ -3,125 +3,158 @@
     <!-- Error Message -->
     <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
 
-    <!-- Form -->
-    <b-form @submit="onSubmit" @reset="onReset" novalidate>
-      <!-- Type Field -->
-      <b-form-group id="input-group-1" label="Workout Type" label-for="input-1">
-        <b-form-input
-          id="input-1"
-          v-model="form.type"
-          placeholder="Enter Workout Type"
-          :state="validateField('type')"
-          required
-        ></b-form-input>
-        <b-form-invalid-feedback v-if="!validateField('type')">
-          Type is required.
-        </b-form-invalid-feedback>
-      </b-form-group>
+    <!-- Form Wrapper -->
+    <div>
+      <b-form @submit="onSubmit" @reset="onReset" novalidate>
+        <!-- Type Field -->
+        <b-form-group id="input-group-1" label="Workout Type" label-for="input-1">
+          <b-form-input
+            id="input-1"
+            v-model="form.type"
+            placeholder="Enter Workout Type or Dictate Here"
+            @focus="startRecognitionFor('type')"
+            :state="validateField('type')"
+            required
+          ></b-form-input>
+          <b-form-invalid-feedback v-if="!validateField('type')">
+            Type is required.
+          </b-form-invalid-feedback>
+        </b-form-group>
 
-      <!-- Duration Field -->
-      <b-form-group id="input-group-2" label="Duration (e.g., '30 days')" label-for="input-2">
-        <b-form-input
-          id="input-2"
-          v-model="form.duration"
-          placeholder="Enter Duration"
-          :state="validateField('duration')"
-          required
-        ></b-form-input>
-        <b-form-invalid-feedback v-if="!validateField('duration')">
-          Duration is required and must be a valid string.
-        </b-form-invalid-feedback>
-      </b-form-group>
+        <!-- Duration Field -->
+        <b-form-group id="input-group-2" label="Duration (e.g., '30 days')" label-for="input-2">
+          <b-form-input
+            id="input-2"
+            v-model="form.duration"
+            placeholder="Enter Duration or Dictate Here"
+            @focus="startRecognitionFor('duration')"
+            :state="validateField('duration')"
+            required
+          ></b-form-input>
+          <b-form-invalid-feedback v-if="!validateField('duration')">
+            Duration is required and must be a valid string.
+          </b-form-invalid-feedback>
+        </b-form-group>
 
-      <!-- Buttons -->
-      <div class="add-button">
-        <b-button
-          v-b-tooltip.hover
-          title="Submit the workout plan"
-          type="submit"
-          variant="success"
-          class="btn-submit"
-        >
-          ➕ Add
-        </b-button>
-        <b-button
-          v-b-tooltip.hover
-          title="Clear the form fields"
-          type="reset"
-          variant="danger"
-          class="btn-reset"
-        >
-          🗑 Reset
-        </b-button>
-      </div>
-    </b-form>
+        <!-- Buttons -->
+        <div class="add-button">
+          <b-button
+            v-b-tooltip.hover
+            title="Submit the workout plan"
+            type="submit"
+            variant="success"
+            class="btn-submit"
+          >
+            ➕ Add
+          </b-button>
+          <b-button
+            v-b-tooltip.hover
+            title="Clear the form fields"
+            type="reset"
+            variant="danger"
+            class="btn-reset"
+          >
+            🗑 Reset
+          </b-button>
+          <button @click="toggleSpeechRecognition">
+            {{ isListening ? 'Stop Listening' : 'Start Listening' }}
+          </button>
+        </div>
+      </b-form>
+    </div>
   </div>
 </template>
 
+
 <script>
-import { Api } from '@/Api'
+import { Api } from '@/Api';
+import { stt } from '@/stt';
 
 export default {
   data() {
     return {
       form: {
         type: '',
-        duration: '' // Treating duration as a string
+        duration: ''
       },
+      activeField: null, // Tracks the active field for STT
       errorMessage: ''
-    }
+    };
   },
-  mounted() {
-    const notLoggedIn = localStorage.getItem('token') == null
-    if (notLoggedIn) {
-      this.$router.push('/login')
+  computed: {
+    recognizedText() {
+      return stt.getRecognizedText();
+    },
+    isListening() {
+      return stt.isRecognitionActive();
     }
   },
   methods: {
-    // Real-time validation for fields
-    validateField(field) {
-      if (field === 'type') {
-        return this.form.type.trim().length > 0
+    toggleSpeechRecognition() {
+      if (stt.isRecognitionActive()) {
+        stt.stopRecognition();
+        this.activeField = null; // Clear active field when stopping STT
+      } else {
+        stt.startRecognition();
       }
-      if (field === 'duration') {
-        return this.form.duration.trim().length > 0 // Validate as non-empty string
-      }
-      return true
     },
-
-    // Submit form
+    startRecognitionFor(field) {
+      this.activeField = field;
+      stt.recognizedText = ''; // Clear previous recognized text
+      if (!stt.isRecognitionActive()) {
+        stt.startRecognition();
+      }
+    },
+    validateField(field) {
+      const fieldValue = this.form[field].trim();
+      const recognizedValue = this.activeField === field ? this.recognizedText.trim() : '';
+      return fieldValue.length > 0 || recognizedValue.length > 0;
+    },
     async onSubmit(event) {
-      event.preventDefault()
-      if (navigator.vibrate) navigator.vibrate(50);
-      // Validate form before submission
-      const isFormValid = this.validateField('type') && this.validateField('duration')
-      if (!isFormValid) {
-        this.errorMessage = 'Please fill out all required fields correctly.'
-        return
+      event.preventDefault();
+
+      // Combine manually entered and recognized text for submission
+      const type =
+        this.activeField === 'type' && this.recognizedText.trim()
+          ? this.recognizedText
+          : this.form.type;
+      const duration =
+        this.activeField === 'duration' && this.recognizedText.trim()
+          ? this.recognizedText
+          : this.form.duration;
+
+      if (!type.trim() || !duration.trim()) {
+        this.errorMessage = 'Please fill out all required fields correctly.';
+        return;
       }
 
       try {
-        await Api.post('/workoutplans', {
-          type: this.form.type,
-          duration: this.form.duration // Sending duration as a string
-        })
-        this.$router.push({ path: '/workout-plans' })
+        await Api.post('/workoutplans', { type: type.trim(), duration: duration.trim() });
+        this.$router.push({ path: '/workout-plans' });
       } catch (error) {
-        this.errorMessage = 'Sorry, something went wrong. Please try again later.'
+        this.errorMessage = 'Sorry, something went wrong. Please try again later.';
       }
     },
-
-    // Reset form fields
     onReset(event) {
-      event.preventDefault()
-      if (navigator.vibrate) navigator.vibrate(50);
-      this.form.type = ''
-      this.form.duration = ''
-      this.errorMessage = ''
+      event.preventDefault();
+      this.form.type = '';
+      this.form.duration = '';
+      this.errorMessage = '';
+      stt.recognizedText = ''; // Clear STT text
+    }
+  },
+  watch: {
+    recognizedText(newValue) {
+      // Update the active field with recognized text in real time
+      if (this.activeField) {
+        this.form[this.activeField] = newValue;
+      }
     }
   }
-}
+};
 </script>
+
+
 
 <style>
 /* Button Layout */

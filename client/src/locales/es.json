@@ -60,5 +60,7 @@
   "noResultsFound": "No se encontraron resultados",
   "backToHome": "Volver al Inicio",
   "selectOption": "Seleccionar una Opción",
-  "welcomeMessage": "¡Bienvenido al Rastreador de Fitness! Navega por tus planes y progreso."
+  "welcomeMessage": "¡Bienvenido al Rastreador de Fitness! Navega por tus planes y progreso.",
+  "startListening": "Start Listening",
+  "stopListening": "Stop Listening"
 }

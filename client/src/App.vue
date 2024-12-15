@@ -12,7 +12,6 @@
           <b-navbar-nav class="nav-left">
             <!-- Left-aligned items (empty for now) -->
           </b-navbar-nav>
-
           <!-- Centered Links -->
           <b-navbar-nav class="mx-auto nav-center">
             <b-nav-item v-if="isLoggedIn">
@@ -88,6 +87,8 @@
 
 <script>
 import { Api } from '@/Api';
+import { stt } from '@/stt';
+
 
 export default {
   data() {
@@ -95,6 +96,9 @@ export default {
       isLoggedIn: localStorage.getItem('token') != null,
       isSimpleMode: false,
       isScreenReaderActive: false,
+      sListening: false,
+      recognition: null,
+      recognizedText: '', // Store recognized speech here
       currentColorMode: 'normal',
       colorModes: {
         normal: {
@@ -229,7 +233,14 @@ export default {
           window.location.href = '/signup';
         })
         .catch(() => alert('Account deletion failed.'));
+    },
+    toggleSpeechRecognition() {
+      stt.isRecognitionActive() ? stt.stopRecognition() : stt.startRecognition();
+    },
+    processSpeechCommand(command) {
+      stt.processCommand(command);
     }
+
   },
   mounted() {
     const savedMode = localStorage.getItem('colorMode') || 'normal';
@@ -245,6 +256,10 @@ export default {
     // Ensure proper screen reader event listeners
     if (this.isScreenReaderActive) {
       this.enableScreenReader();
+    }
+
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      alert('Speech Recognition is not supported in this browser. Please use a modern browser.');
     }
   }
 };

@@ -3,7 +3,8 @@
     <b-alert variant="danger" :show="!!errorMessage">{{ errorMessage }}</b-alert>
 
     <b-form @submit="onSubmit" @reset="onReset" novalidate>
-      <b-form-group id="input-group-name" :label="$t('name')" label-for="input-name">
+      <!-- Name Field -->
+      <b-form-group id="input-group-name" label="Name" label-for="input-name">
         <b-form-input
           id="input-name"
           v-model="form.name"
@@ -14,7 +15,20 @@
         <b-form-invalid-feedback>Name is required and must be at least 3 characters.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-email" :label="$t('email')" label-for="input-email">
+      <!-- Username Field -->
+      <b-form-group id="input-group-username" label="Username" label-for="input-username">
+        <b-form-input
+          id="input-username"
+          v-model="form.username"
+          placeholder="Enter username"
+          :state="validateField('username')"
+          required
+        ></b-form-input>
+        <b-form-invalid-feedback>Username is required and must be unique.</b-form-invalid-feedback>
+      </b-form-group>
+
+      <!-- Email Field -->
+      <b-form-group id="input-group-email" label="Email" label-for="input-email">
         <b-form-input
           id="input-email"
           v-model="form.email"
@@ -25,7 +39,21 @@
         <b-form-invalid-feedback>Enter a valid email address.</b-form-invalid-feedback>
       </b-form-group>
 
-      <b-form-group id="input-group-password" :label="$t('password')" label-for="input-password">
+      <!-- Age Field -->
+      <b-form-group id="input-group-age" label="Age" label-for="input-age">
+        <b-form-input
+          id="input-age"
+          v-model="form.age"
+          type="number"
+          placeholder="Enter age"
+          :state="validateField('age')"
+          required
+        ></b-form-input>
+        <b-form-invalid-feedback>Age is required and must be a number greater than 0.</b-form-invalid-feedback>
+      </b-form-group>
+
+      <!-- Password Field -->
+      <b-form-group id="input-group-password" label="Password" label-for="input-password">
         <b-form-input
           id="input-password"
           v-model="form.password"
@@ -37,21 +65,26 @@
         <b-form-invalid-feedback>Password must be at least 6 characters long.</b-form-invalid-feedback>
       </b-form-group>
 
+      <!-- Signup and Reset Buttons -->
       <div class="signup-button">
-        <b-button v-b-tooltip.hover type="submit" variant="primary">{{ $t('signup') }}</b-button>
-        <b-button v-b-tooltip.hover type="reset" variant="danger">{{ $t('reset') }}</b-button>
+        <b-button v-b-tooltip.hover type="submit" variant="primary">Sign Up</b-button>
+        <b-button v-b-tooltip.hover type="reset" variant="danger">Reset</b-button>
       </div>
     </b-form>
   </div>
 </template>
 
 <script>
+import { Api } from '../Api';
+
 export default {
   data() {
     return {
       form: {
         name: '',
+        username: '',
         email: '',
+        age: '',
         password: ''
       },
       errorMessage: ''
@@ -62,8 +95,12 @@ export default {
       switch (field) {
         case 'name':
           return this.form.name.length >= 3;
+        case 'username':
+          return this.form.username.trim().length > 0;
         case 'email':
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email);
+        case 'age':
+          return Number(this.form.age) > 0;
         case 'password':
           return this.form.password.length >= 6;
         default:
@@ -72,10 +109,13 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault();
-      if (navigator.vibrate) navigator.vibrate(50);
+
+      // Validate all fields
       if (
         !this.validateField('name') ||
+        !this.validateField('username') ||
         !this.validateField('email') ||
+        !this.validateField('age') ||
         !this.validateField('password')
       ) {
         this.errorMessage = 'Please fix the errors before submitting.';
@@ -83,18 +123,59 @@ export default {
       }
 
       try {
-        // API call for signup
+        // Step 1: Register the user traditionally
+        const registerResponse = await Api.post('/auth/register', {
+          name: this.form.name,
+          username: this.form.username,
+          email: this.form.email,
+          age: this.form.age,
+          password: this.form.password
+        });
+
+        const user = registerResponse.data;
+        console.log('User registered:', user);
+
+        // Step 2: Fetch WebAuthn registration options
+        const optionsResponse = await Api.post('/webauthn/register/options', {
+          username: this.form.username
+        });
+
+        const options = optionsResponse.data;
+
+        // Step 3: Trigger WebAuthn registration
+        const credential = await navigator.credentials.create({ publicKey: options });
+
+        // Step 4: Verify WebAuthn registration
+        const verifyResponse = await Api.post('/webauthn/register/verify', {
+          credential: {
+            id: credential.id,
+            rawId: this.bufferToBase64(credential.rawId),
+            response: {
+              attestationObject: this.bufferToBase64(credential.response.attestationObject),
+              clientDataJSON: this.bufferToBase64(credential.response.clientDataJSON)
+            },
+            type: credential.type
+          },
+          username: this.form.username
+        });
+
+        if (!verifyResponse.data.success) {
+          throw new Error('Fingerprint enrollment failed');
+        }
+
+        alert('Signup successful! Redirecting...');
         this.$router.push('/login');
       } catch (error) {
-        this.errorMessage = 'An error occurred. Please try again.';
+        console.error('Error during signup:', error);
+        this.errorMessage = error.response?.data?.message || 'Signup failed. Please try again.';
       }
+    },
+    bufferToBase64(buffer) {
+      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
     },
     onReset(event) {
       event.preventDefault();
-      if (navigator.vibrate) navigator.vibrate(50);
-      this.form.name = '';
-      this.form.email = '';
-      this.form.password = '';
+      this.form = { name: '', username: '', email: '', age: '', password: '' };
       this.errorMessage = '';
     }
   }
@@ -107,4 +188,3 @@ export default {
   gap: 5px;
 }
 </style>
-

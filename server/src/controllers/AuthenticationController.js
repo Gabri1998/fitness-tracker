@@ -5,48 +5,113 @@ var bcrypt = require("bcryptjs");
 const encryption = require("../utilities/crypto-utils");
 var User = require("../models/User");
 
-router.post("/register", function (req, res, next) {
-  bcrypt.hash(req.body.password, 10, function (err, hashedPass) {
-    if (err) {
-      res.status(401).json({
-        err: "no password provided",
-      });
-    } else {
-      var new_user = new User(req.body);
-      new_user.password = hashedPass;
-      new_user
-        .save()
-        .then(() => res.status(201).json(new_user))
-        .catch((err) => {
-          err.status = 422;
-          next(err);
-        });
+router.post("/register", async (req, res, next) => {
+  console.log("Register request body:", req.body);
+  try {
+    const { username, password, webAuthnResponse } = req.body;
+ 
+    console.log("Inside Authentication Controller - Register 1");
+    // Hash the password if provided
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
     }
-  });
+
+    const user = new User({
+      username,
+      password: hashedPassword,
+    });
+    
+  console.log("Inside Authentication Controller - Register 2");
+    // Handle WebAuthn registration if response provided
+    if (webAuthnResponse) {
+      const verification = await verifyRegistrationResponse({
+        response: webAuthnResponse,
+        expectedChallenge: req.session.challenge,
+        expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+        expectedRPID: process.env.RP_ID || "localhost",
+      });
+  
+      console.log("Inside Authentication Controller - Register 3");
+
+      if (!verification.verified) {
+        return res.status(400).json({ message: "WebAuthn registration failed" });
+      }
+
+      const { credentialPublicKey, credentialID, counter } = verification.registrationInfo;
+
+      user.webAuthnCredentials.push({
+        credentialID: credentialID.toString("base64"),
+        publicKey: credentialPublicKey.toString("base64"),
+        counter,
+      });
+    }
+  
+    console.log("Inside Authentication Controller - Register 4");
+    await user.save();
+    res.status(201).json({ message: "Registration successful" });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    next(error);
+  }
 });
+
 router.post("/login", async (req, res, next) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
-    if (user === null) {
-      res.status(404).json({ message: "User not found " });
-      return;
+    const { username, password, webAuthnResponse } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const ispasswordmatched = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
-
-    if (ispasswordmatched) {
-      res
-        .status(200)
-        .json({ token: encryption.encryptToken(user._id.toString()) });
-      return;
+    // Handle password-based login
+    if (password) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (isPasswordValid) {
+        const token = encryption.encryptToken(user._id.toString());
+        return res.status(200).json({ token });
+      } else {
+        return res.status(401).json({ message: "Invalid password" });
+      }
     }
 
-    res.status(404).json({ message: "User not matched" });
+    // Handle WebAuthn login
+    if (webAuthnResponse) {
+      const credential = user.webAuthnCredentials.find(
+        (cred) => cred.credentialID === webAuthnResponse.id
+      );
+
+      if (!credential) {
+        return res.status(404).json({ message: "WebAuthn credential not found" });
+      }
+
+      const verification = await verifyAuthenticationResponse({
+        response: webAuthnResponse,
+        expectedChallenge: req.session.challenge,
+        expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
+        expectedRPID: process.env.RP_ID || "localhost",
+        authenticator: {
+          credentialPublicKey: Buffer.from(credential.publicKey, "base64"),
+          counter: credential.counter,
+        },
+      });
+
+      if (!verification.verified) {
+        return res.status(401).json({ message: "WebAuthn authentication failed" });
+      }
+
+      // Update the counter to prevent replay attacks
+      credential.counter = verification.authenticationInfo.newCounter;
+      await user.save();
+
+      const token = encryption.encryptToken(user._id.toString());
+      return res.status(200).json({ token });
+    }
+
+    res.status(400).json({ message: "Invalid login request" });
   } catch (error) {
-    error.status = 422;
+    console.error("Error during login:", error);
     next(error);
   }
 });

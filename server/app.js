@@ -12,6 +12,8 @@ const authorizationMiddleware = require("./src/middlewares/AuthorizationMiddlewa
 const workoutPlansController = require("./src/controllers/workoutPlans");
 const methodOverride = require("method-override");
 const hateoasLinker = require("express-hateoas-links");
+const webauthnController = require("./src/controllers/webauthnController");
+const session = require('express-session');
 
 // Variables
 const mongoURI =
@@ -30,6 +32,18 @@ mongoose.connect(mongoURI).catch(function (err) {
 
 // Create Express app
 const app = express();
+
+app.use(session({
+  secret: 'your-secret-key', // Replace with a strong secret
+  resave: false, // Avoid resaving session if not modified
+  saveUninitialized: false, // Only save session if data exists
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true, // Prevent JavaScript access
+    maxAge: 60000 // Session expires in 1 minute (adjust as needed)
+  }
+}));
+
 app.use('/sounds', express.static(path.join(__dirname, 'public/sounds')));
 app.use(methodOverride("X-HTTP-Method-Override"));
 app.use(hateoasLinker);
@@ -44,10 +58,12 @@ app.use(cors());
 
 // Import routes
 app.get("/api", function (req, res) {
-  res.json({ message: "Welcome to group-02 backend ExpressJS project!" });
+  res.json({ message: "Welcome to HCI backend ExpressJS project!" });
 });
 
+
 app.use("/api/v1/auth", Authentication);
+app.use("/api/v1/webauthn", webauthnController);
 app.use("/api/v1/users", authorizationMiddleware, usersControllers);
 app.use("/api/v1/sessions", authorizationMiddleware, Sessions);
 app.use("/api/v1/exercises", authorizationMiddleware, Exercises);

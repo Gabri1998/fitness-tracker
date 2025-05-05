@@ -1,60 +1,279 @@
-/* styles.css */
+/* Root Variables: Default Colors */
+:root {
+  --primary-color: #007bff; /* Default primary color */
+  --secondary-color: #6c757d; /* Default secondary color */
+  --background-color: #ffffff; /* Default background */
+  --text-color: #212529; /* Default text color */
+  --button-bg: var(--primary-color); /* Button background */
+  --button-hover-bg: var(--secondary-color); /* Button hover background */
+  --button-text: var(--background-color); /* Button text color */
+  --link-text: var(--primary-color); /* Link text color */
+  --link-hover-bg: var(--secondary-color); /* Link hover background */
+  --table-header-bg: var(--primary-color); /* Table header background */
+  --table-header-text: var(--background-color); /* Table header text */
+}
 
-/* Typography */
+/* Protanopia Mode (Red-Weak) */
+body.protanopia {
+  --primary-color: #ff8c00;
+  --secondary-color: #006d77;
+  --background-color: #fff7e6;
+  --text-color: #1d3557;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: linear-gradient(to bottom, #fff7e6, #ffe4b5);
+}
+
+/* Deuteranopia Mode (Green-Weak) */
+body.deuteranopia {
+  --primary-color: #ffb300;
+  --secondary-color: #8b4513;
+  --background-color: #faf3dd;
+  --text-color: #2e2e2e;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: linear-gradient(to right, #faf3dd, #fff4cc);
+}
+
+/* Tritanopia Mode (Blue-Weak) */
+body.tritanopia {
+  --primary-color: #006d2c;
+  --secondary-color: #cc8400;
+  --background-color: #e8f5e9;
+  --text-color: #0d3b66;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--background-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: repeating-linear-gradient(45deg, #e8f5e9, #dcedc8 10px, #e0e0e0 20px);
+}
+
+/* Achromatopsia Mode (No Color Perception) */
+body.achromatopsia {
+  --primary-color: #666666;
+  --secondary-color: #999999;
+  --background-color: #f7f7f7;
+  --text-color: #000000;
+  --button-bg: var(--primary-color);
+  --button-hover-bg: var(--secondary-color);
+  --button-text: var(--text-color);
+  --link-text: var(--primary-color);
+  --link-hover-bg: var(--secondary-color);
+  --table-header-bg: var(--primary-color);
+  --table-header-text: var(--background-color);
+  background: #dcdcdc;
+}
+
+/* General Styling */
 body {
-  font-family: 'Roboto', sans-serif;
-  color: #333;
+  background-color: var(--background-color);
+  color: var(--text-color);
   margin: 0;
   padding: 0;
-  background-color: #f9f9f9;
+  font-family: 'Roboto', sans-serif;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* Global button styles */
-button {
-  transition: background-color 0.3s ease, transform 0.2s ease;
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: bold;
+  line-height: 1.2;
 }
 
-button:hover {
-  background-color: #0069d9;
+/* Navbar */
+.navbar, .header-container {
+  background-color: var(--primary-color) !important;
+}
+
+.navbar a, .header-container h1 {
+  color: var(--background-color) !important;
+}
+
+.navbar a:hover {
+  color: var(--text-color) !important;
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Base Button Styles */
+button, .btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 2px solid var(--button-border);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover Effect */
+button:hover, .btn:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--button-hover-text);
   transform: scale(1.05);
-  color: #fff;
 }
 
-/* Card Styles */
+/* Disabled Buttons */
+button:disabled, .btn:disabled {
+  background-color: var(--button-disabled-bg);
+  color: var(--button-disabled-text);
+  border: 2px solid var(--button-disabled-border);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary Buttons */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--button-primary-text);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Danger Buttons */
+.btn-danger {
+  background-color: var(--danger-color);
+  color: var(--button-danger-text);
+  border-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Success Buttons */
+.btn-success {
+  background-color: var(--success-color);
+  color: var(--button-success-text);
+  border-color: var(--success-color);
+}
+
+.btn-success:hover {
+  background-color: var(--success-hover-color);
+  color: var(--button-hover-text);
+}
+
+/* Outline Buttons */
+.btn-outline-danger {
+  background-color: transparent;
+  color: var(--danger-color);
+  border: 2px solid var(--danger-color);
+}
+
+.btn-outline-danger:hover {
+  background-color: var(--danger-color);
+  color: var(--background-color);
+}
+
+
+/* Links Styling */
+a, .add-link {
+  color: var(--link-text);
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+a:hover, .add-link:hover {
+  background-color: var(--link-hover-bg);
+  color: var(--background-color);
+  transform: scale(1.05);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  padding: 10px;
+  text-align: left;
+}
+
+td {
+  border-bottom: 1px solid var(--secondary-color);
+  padding: 10px;
+}
+
+tr:hover {
+  background-color: var(--secondary-color);
+  color: var(--background-color);
+}
+
+/* Forms */
+input, textarea, select {
+  border: 2px solid var(--secondary-color);
+  border-radius: 4px;
+  padding: 8px;
+  width: 100%;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.b-form-invalid-feedback {
+  color: #d9534f;
+}
+
+.b-form-valid-feedback {
+  color: #5cb85c;
+}
+
+/* Cards */
 .card {
+  background-color: var(--background-color);
+  color: var(--text-color);
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  background-color: #fff;
-  margin-bottom: 16px;
 }
 
 .card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Table Styling */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 16px 0;
+/* Tooltip */
+.tooltip-inner {
+  background-color: var(--text-color);
+  color: var(--background-color);
 }
 
-th,
-td {
-  text-align: left;
-  padding: 8px;
+.tooltip-arrow {
+  border-top-color: var(--text-color);
 }
 
-th {
-  background-color: #007bff;
-  color: white;
+/* Modal Content */
+.img-preview, .video-preview {
+  max-width: 100%;
+  height: auto;
 }
 
-td {
-  border-bottom: 1px solid #ddd;
-}
-
+/*simple mode*/
 .simple-mode h1,
 .simple-mode p {
   font-size: 1.5rem;
@@ -64,7 +283,63 @@ td {
   font-size: 1.2rem;
   padding: 0.8rem 1.5rem;
 }
+/* Summary Cards */
+.summary-cards {
+  display: flex;
+  padding: 24px 0;
+  gap: 24px;
+  flex-direction: column;
+}
 
-.simple-mode b-table {
-  font-size: 1.2rem;
+.summary-cards section {
+  flex: 1;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+  display: flex;
+  position: relative;
+  background-color: var(--background-color);
+}
+
+.summary-cards section img {
+  width: 400px;
+  height: 400px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.summary-cards section div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  height: 400px;
+  color: var(--text-color);
+}
+
+.summary-cards section div h1:hover {
+  color: var(--primary-color);
+}
+
+/* Mobile and Small Screens Adjustments */
+@media (max-width: 960px) {
+  .summary-cards section img {
+    width: 200px;
+    height: 200px;
+  }
+  .summary-cards section div {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards section img {
+    width: 100%;
+    height: 200px;
+    position: absolute;
+    opacity: 0.2;
+  }
+  .summary-cards section div {
+    height: 200px;
+    z-index: 1;
+  }
 }

@@ -13,7 +13,6 @@
     <div class="btn_container">
       <b-button
         @click="deleteWorkoutPlan"
-        variant="outline-danger"
         class="btn-danger"
         v-b-tooltip.hover
         title="Delete this workout plan"
@@ -112,6 +111,7 @@ export default {
         })
     },
     deleteWorkoutPlan() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(
         this.workoutDetails.links.find((li) => li.method === 'DELETE').href
       )
@@ -123,6 +123,7 @@ export default {
         })
     },
     deleteSession(sessionid) {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(`/sessions/${sessionid}`)
         .then(() => {
           this.getSessions()
@@ -134,8 +135,8 @@ export default {
   }
 }
 </script>
-<style scoped>
-/* General Header Styling */
+<style>
+/* Header Styling */
 .header-container {
   margin-bottom: 1em;
   text-align: center;
@@ -144,111 +145,68 @@ export default {
 .header-title {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
   margin: 0;
 }
 
 .workout-type {
-  color: #007bff; /* Distinguishable blue */
-  font-weight: bold;
+  color: var(--primary-color); /* Use global variable for color */
 }
 
 /* Alert Styling */
 .alert-message {
   text-align: center;
-  font-size: 14px;
   margin-bottom: 1em;
 }
 
-/* Button Styles */
+/* Button Container */
 .btn_container {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   margin-bottom: 1em;
 }
 
-.btn-danger {
-  background-color: #ff4d4f; /* Red background */
-  border: none;
-  color: white;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: bold;
-  border-radius: 4px;
-}
-
-.btn-danger:hover {
-  background-color: #d9363e; /* Darker red on hover */
-}
-
-.btn-add {
-  display: inline-block;
-  background-color: #007bff;
-  color: white;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  margin-top: 1em;
-}
-
-.btn-add:hover {
-  background-color: #0056b3;
-}
-
-/* Table Styling */
+/* Session Table */
 .session-table {
-  border: 1px solid #ddd;
-  border-radius: 4px;
   margin-bottom: 1em;
 }
 
-.session-table tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-/* Clickable Session Styling */
+/* Clickable Session */
 .clickable-session {
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between icon and text */
+  gap: 8px;
 }
 
 .session-icon {
-  color: #007bff; /* Blue for icon */
+  color: var(--primary-color); /* Use global variable for icon color */
   font-size: 16px;
 }
 
 .session-link {
-  color: #0056b3; /* Blue link */
   font-weight: bold;
   text-decoration: none;
 }
 
 .session-link:hover {
-  color: #003d80; /* Darker blue */
   text-decoration: underline;
-}
-
-/* Update Link Styling */
-.link-update {
-  color: #28a745;
-}
-
-.link-update:hover {
-  text-decoration: underline;
-}
-
-/* Delete Button Styling */
-.btn-delete {
-  color: #dc3545;
-}
-
-.btn-delete:hover {
-  color: #a71d2a;
 }
 
 /* Tooltip Styling */
 [role='tooltip'] {
   font-size: 14px;
+}
+ /* simple mode */
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
 }
 </style>

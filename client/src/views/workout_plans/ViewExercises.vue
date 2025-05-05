@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Exercises</h3>
+    <h3>{{ $t('pageTitleExercisesList') }}</h3>
     <div class="btn-container">
       <b-button
         @click="deleteAllExercise()"
@@ -9,12 +9,11 @@
         v-b-tooltip.hover
         title="Delete all exercises"
       >
-        Delete All
+      {{ $t('deleteAll') }}
       </b-button>
     </div>
 
     <b-table striped hover :items="exercises" :fields="fields">
-      <!-- Display file preview option -->
       <template #cell(file)="data">
         <div v-if="data.item.fileContent">
           <b-button
@@ -24,7 +23,7 @@
             v-b-tooltip.hover
             title="View file"
           >
-            View File
+          {{ $t('viewFile') }}
           </b-button>
         </div>
         <div v-else>No File</div>
@@ -36,7 +35,7 @@
           v-b-tooltip.hover
           title="Update exercise"
         >
-          Update
+      {{ $t('update') }}
         </router-link>
         <b-button
           @click="deleteExercise(data.item._id)"
@@ -45,24 +44,25 @@
           v-b-tooltip.hover
           title="Delete exercise"
         >
-          Delete
+       {{ $t('delete') }}
         </b-button>
-      </template>
-    </b-table>
+        </template>
+       </b-table>
 
     <router-link
       to="/exercises/add"
-      class="btn btn-primary add-link"
+      v-tts="$t('addexercise')"
+      class="btn add-link"
       v-b-tooltip.hover
       title="Add a new exercise"
+      @click="speakText('addexercise!')"
     >
-      Add Exercise
+    {{ $t('addexercise') }}
     </router-link>
 
-    <!-- Modal for file preview with dynamic sizing -->
+    <!-- File preview modal -->
     <b-modal v-model="showModal" :title="modalTitle" :size="modalSize" hide-footer>
       <div v-if="previewFileContent">
-        <!-- Conditional rendering based on file type -->
         <img
           v-if="previewFileType.startsWith('image')"
           :src="previewFileContent"
@@ -95,11 +95,11 @@ export default {
       exercises: [],
       fields: ['name', 'instruction', 'level', 'file', 'actions'],
       errorMessage: '',
-      showModal: false, // Modal visibility
-      previewFileContent: null, // Content to display in modal
-      previewFileType: '', // Type of file for conditional display
-      modalSize: 'md', // Default modal size
-      modalTitle: 'File Preview' // Title for the modal
+      showModal: false,
+      previewFileContent: null,
+      previewFileType: '',
+      modalSize: 'md',
+      modalTitle: 'File Preview'
     }
   },
   mounted() {
@@ -116,6 +116,7 @@ export default {
         })
     },
     deleteAllExercise() {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete('/exercises')
         .then(() => {
           this.exercises = []
@@ -125,6 +126,7 @@ export default {
         })
     },
     deleteExercise(exerciseid) {
+      if (navigator.vibrate) navigator.vibrate(50);
       Api.delete(`/exercises/${exerciseid}`)
         .then(() => {
           this.getExercises()
@@ -134,11 +136,11 @@ export default {
         })
     },
     showFilePreview(exercise) {
+      if (navigator.vibrate) navigator.vibrate(50);
       this.previewFileContent = exercise.fileContent
       this.previewFileType = exercise.fileType
       this.showModal = true
 
-      // Set modal size and title based on file type
       if (exercise.fileType.startsWith('image')) {
         this.modalSize = 'sm'
         this.modalTitle = 'Image Preview'
@@ -155,62 +157,67 @@ export default {
 </script>
 
 <style>
-/* Enhanced button container styling */
+
+/*simple mode*/
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
+}
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+}
+
 .btn-container {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   margin-bottom: 1em;
 }
 
-/* Action buttons with hover and focus effects */
 .action-button {
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-  transition: all 0.2s ease-in-out;
+  background-color: var(--primary-color);
+  color: var(--text-color);
 }
 
-.action-button:hover,
-.action-button:focus {
-  transform: scale(1.05);
-  outline: none;
+.action-button:hover {
+  background-color: var(--secondary-color);
+  color: var(--background-color);
 }
 
-/* Add button with consistent styling */
 .add-link {
   display: inline-block;
   margin-top: 1em;
   padding: 0.5rem 1rem;
-  text-decoration: none;
-  border-radius: 0.375rem;
-  color: white;
-  background-color: #007bff;
+  background-color: var(--primary-color);
+  color: var(--background-color);
 }
 
-.add-link:hover,
-.add-link:focus {
-  background-color: #0056b3;
-  transform: scale(1.05);
-  text-decoration: none;
-  outline: none;
+.add-link:hover {
+  background-color: var(--secondary-color);
 }
 
-/* Styling for modal content */
-.img-preview {
-  max-width: 100%;
+.img-preview,
+.video-preview {
+  width: 100%;
   height: auto;
 }
 
-.video-preview {
-  width: 100%;
-  height: 300px; /* Adjust height as needed for a smaller view */
+.tooltip-inner {
+  background-color: var(--text-color);
+  color: var(--background-color);
 }
 
-/* Tooltip colors for better visibility */
-.tooltip-inner {
-  background-color: #333; /* Darker background */
-  color: #fff; /* White text for contrast */
-}
 .tooltip-arrow {
-  border-top-color: #333;
+  border-top-color: var(--text-color);
 }
+
+
+
 </style>

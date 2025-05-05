@@ -1,27 +1,27 @@
 <template>
   <div>
-    <h3>Profile</h3>
+    <h3>{{ $t('pageTitleHome') }}</h3>
     <b-table striped hover :items="users" :fields="fields"></b-table>
 
     <div class="summary-cards">
       <section class="workout-card">
         <img src="/workoutplans.jpg" alt="" />
         <div>
-          <h1>Workout Plans</h1>
+          <h1>{{ $t('totalworkoutPlans') }}</h1>
           <h1>{{ this.summary.workoutCount }}</h1>
         </div>
       </section>
       <section class="session-card">
         <img src="sessions.jpg" alt="" />
         <div>
-          <h1>Total Sessions</h1>
+          <h1>{{ $t('totalSessions') }}</h1>
           <h1>{{ this.summary.sessionCount }}</h1>
         </div>
       </section>
       <section class="exercise-card">
         <img src="/exercises.jpg" alt="" />
         <div>
-          <h1>Selected Exercises</h1>
+          <h1>{{ $t('selectedExercises') }}</h1>
           <h1>{{ this.summary.exerciseCount }}</h1>
         </div>
       </section>
@@ -82,12 +82,21 @@ export default {
 </script>
 
 <style>
-* {
-  color: rgb(10, 10, 127);
+/*simple mode*/
+.simple-mode h1,
+.simple-mode p {
+  font-size: 1.5rem;
 }
-.btn_message {
-  margin-bottom: 1em;
+
+.simple-mode h3{
+  font-size: 2rem;
 }
+
+.simple-mode button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+}
+
 .summary-cards {
   display: flex;
   padding-top: 24px;
@@ -125,16 +134,11 @@ export default {
 .exercise-card {
   background: #d3d3d3;
 }
-.workout-card:hover {
-  background-color: #87ceeb;
-}
-.session-card:hover {
-  background-color: #87ceeb;
-}
+.workout-card:hover,
+.session-card:hover,
 .exercise-card:hover {
   background-color: #87ceeb;
 }
-
 @media (max-width: 960px) {
   .summary-cards section img {
     width: 200px;

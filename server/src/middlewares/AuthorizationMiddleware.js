@@ -1,23 +1,23 @@
 const encryption = require("../utilities/crypto-utils");
 
-async function authorizationMiddleware(req, res, next) {
-  const ispublic = req.originalUrl.toLowerCase().includes("/public");
-  if (ispublic) {
+const authorizationMiddleware = async (req, res, next) => {
+  const isPublic = req.originalUrl.toLowerCase().includes('/public');
+  if (isPublic) {
     next();
     return;
   }
   if (!req.headers.authorization) {
-    res.status(401).json({ message: "Not authorized" });
-    return;
-  }
-  try {
-    const userid = encryption.decryptToken(req.headers.authorization);
-    req.userid = userid;
-  } catch (error) {
-    res.status(401).json({ message: "Not authorized" });
-    return;
+    return res.status(401).json({ message: 'Not authorized' });
   }
 
-  next();
-}
+  try {
+    const userID = encryption.decryptToken(req.headers.authorization);
+    req.userid = userID; // Attach user ID to the request
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
 module.exports = authorizationMiddleware;
+

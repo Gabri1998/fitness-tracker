@@ -1,52 +1,60 @@
 var express = require("express");
-var mongoose = require("mongoose");
 var router = express.Router();
 var bcrypt = require("bcryptjs");
 const encryption = require("../utilities/crypto-utils");
 var User = require("../models/User");
 
-router.post("/register", function (req, res, next) {
-  bcrypt.hash(req.body.password, 10, function (err, hashedPass) {
-    if (err) {
-      res.status(401).json({
-        err: "no password provided",
-      });
-    } else {
-      var new_user = new User(req.body);
-      new_user.password = hashedPass;
-      new_user
-        .save()
-        .then(() => res.status(201).json(new_user))
-        .catch((err) => {
-          err.status = 422;
-          next(err);
-        });
-    }
-  });
+// Register endpoint
+router.post("/register", async (req, res, next) => {
+  console.log("Register request body:", req.body);
+  try {
+    const { name, username, email, password, age } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      name,
+      username,
+      email,
+      password: hashedPassword,
+      age
+    });
+
+    await user.save();
+    console.log("User registered successfully:", user);
+    res.status(201).json({ message: "Registration successful" });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    next(error);
+  }
 });
+
+// Login endpoint
 router.post("/login", async (req, res, next) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
-    if (user === null) {
-      res.status(404).json({ message: "User not found " });
-      return;
+    const { username, email, password } = req.body;
+
+    const user = await User.findOne({
+      $or: [{ username }, { email }],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const ispasswordmatched = await bcrypt.compare(
-      req.body.password,
-      user.password
-    );
+    if (password) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid password" });
+      }
 
-    if (ispasswordmatched) {
-      res
-        .status(200)
-        .json({ token: encryption.encryptToken(user._id.toString()) });
-      return;
+      const token = encryption.encryptToken(user._id.toString());
+      return res.status(200).json({ token });
     }
 
-    res.status(404).json({ message: "User not matched" });
+    res.status(400).json({ message: "Password is required for login." });
   } catch (error) {
-    error.status = 422;
+    console.error("Error during login:", error);
     next(error);
   }
 });

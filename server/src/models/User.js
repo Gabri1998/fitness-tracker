@@ -1,12 +1,14 @@
+const { uniq } = require("lodash");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   name: { type: String, required: true },
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String },
-  age: { type: Number },
+  username: { type: String, required: true },
+  email: { type: String, required: true, uniq:true },
+  password: { type: String, required: true },
+  age: { type: Number }
 });
+
 
 module.exports = mongoose.model("User", userSchema);

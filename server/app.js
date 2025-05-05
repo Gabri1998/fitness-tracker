@@ -4,94 +4,86 @@ const morgan = require("morgan");
 const path = require("path");
 const cors = require("cors");
 const history = require("connect-history-api-fallback");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+require("dotenv").config();
+
+// Controllers and Middlewares
 const usersControllers = require("./src/controllers/usersController");
 const Sessions = require("./src/controllers/SessionsController");
 const Exercises = require("./src/controllers/ExercisesController");
 const Authentication = require("./src/controllers/AuthenticationController");
-const authorizationMiddleware = require("./src/middlewares/AuthorizationMiddleware");
 const workoutPlansController = require("./src/controllers/workoutPlans");
-const methodOverride = require("method-override");
-const hateoasLinker = require("express-hateoas-links");
+const webauthnController = require("./src/controllers/webauthnController");
+const authorizationMiddleware = require("./src/middlewares/AuthorizationMiddleware");
 
 // Variables
-const mongoURI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/animalDevelopmentDB";
+const mongoURI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/animalDevelopmentDB";
 const port = process.env.PORT || 3000;
 
 // Connect to MongoDB
-mongoose.connect(mongoURI).catch(function (err) {
-  if (err) {
-    console.error(`Failed to connect to MongoDB with URI: ${mongoURI}`);
-    console.error(err.stack);
-    process.exit(1);
-  }
-  console.log(`Connected to MongoDB with URI: ${mongoURI}`);
+mongoose.connect(mongoURI).catch((err) => {
+  console.error(`Failed to connect to MongoDB: ${err.stack}`);
+  process.exit(1);
 });
+console.log(`Connected to MongoDB at ${mongoURI}`);
 
 // Create Express app
 const app = express();
-app.use(methodOverride("X-HTTP-Method-Override"));
-app.use(hateoasLinker);
-// Parse requests of content-type 'application/json'
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-// HTTP request logger
+
+// Session Middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: mongoURI }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+  },
+}));
+
+// CORS Middleware
+app.use(cors({
+  origin: 'http://localhost:8080',
+  credentials: true,
+}));
+
+// Logging and Parsers
 app.use(morgan("dev"));
-// Enable cross-origin resource sharing for frontend must be registered before api
-app.options("*", cors());
-app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Import routes
-app.get("/api", function (req, res) {
-  res.json({ message: "Welcome to group-02  backend ExpressJS project!" });
-});
+// Static Assets
+app.use('/sounds', express.static(path.join(__dirname, 'public/sounds')));
 
+// Routes
+app.get("/api", (req, res) => res.json({ message: "Welcome to HCI backend ExpressJS project!" }));
 app.use("/api/v1/auth", Authentication);
-app.use("/api/v1/users", authorizationMiddleware, usersControllers);
+app.use("/api/v1/webauthn", webauthnController);
+app.use("/api/v1/users",authorizationMiddleware, usersControllers);
 app.use("/api/v1/sessions", authorizationMiddleware, Sessions);
 app.use("/api/v1/exercises", authorizationMiddleware, Exercises);
-app.use(
-  "/api/v1/workoutplans",
-  authorizationMiddleware,
-  workoutPlansController
-);
+app.use("/api/v1/workoutplans", authorizationMiddleware, workoutPlansController);
 
-// Catch all non-error handler for api (i.e., 404 Not Found)
-app.use("/api/*", function (req, res) {
-  res.status(404).json({ message: "Not Found" });
-});
+// 404 Handler
+app.use("/api/*", (req, res) => res.status(404).json({ message: "Not Found" }));
 
-// Configuration for serving frontend in production mode
-// Support Vuejs HTML 5 history mode
+// Vue.js History Mode Support and Static Files
 app.use(history());
-// Serve static assets
-var root = path.normalize(__dirname + "/..");
-var client = path.join(root, "client", "dist");
-app.use(express.static(client));
+app.use(express.static(path.join(__dirname, "..", "client", "dist")));
 
-// Error handler (i.e., when exception is thrown) must be registered last
-var env = app.get("env");
-// eslint-disable-next-line no-unused-vars
-app.use(function (err, req, res, next) {
+// Error Handling
+app.use((err, req, res, next) => {
   console.error(err.stack);
-  var err_res = {
+  res.status(err.status || 500).json({
     message: err.message,
-    error: {},
-  };
-  if (env === "development") {
-    // Return sensitive stack trace only in dev mode
-    err_res["error"] = err.stack;
-  }
-  res.status(err.status || 500);
-  res.json(err_res);
+    error: process.env.NODE_ENV === 'development' ? err.stack : {},
+  });
 });
 
-app.listen(port, function (err) {
-  if (err) throw err;
-  console.log(`Express server listening on port ${port}, in ${env} mode`);
-  console.log(`Backend: http://localhost:${port}/api/`);
-  console.log(`Backend: http://localhost:${port}/api/v1`);
-  console.log(`Frontend (production): http://localhost:${port}/`);
+// Start Server
+app.listen(port, () => {
+  console.log(`Express server running on http://localhost:${port}`);
 });
-
-module.exports = app;

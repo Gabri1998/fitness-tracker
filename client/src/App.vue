@@ -3,8 +3,7 @@
     <div>
       <b-navbar toggleable="lg" type="dark" variant="info">
         <!-- Navbar Brand -->
-        <b-navbar-brand href="/">Fitness Tracker</b-navbar-brand>
-
+        <b-navbar-brand href="/">{{ $t('welcome') }}</b-navbar-brand>
         <!-- Navbar Toggle Button -->
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -13,17 +12,16 @@
           <b-navbar-nav class="nav-left">
             <!-- Left-aligned items (empty for now) -->
           </b-navbar-nav>
-
           <!-- Centered Links -->
           <b-navbar-nav class="mx-auto nav-center">
             <b-nav-item v-if="isLoggedIn">
-              <router-link to="/">Home</router-link>
+              <router-link to="/">{{ $t('home') }}</router-link>
             </b-nav-item>
             <b-nav-item v-if="isLoggedIn">
-              <router-link to="/workout-plans">Workout Plans</router-link>
+              <router-link to="/workout-plans">{{ $t('workoutPlans') }}</router-link>
             </b-nav-item>
             <b-nav-item v-if="isLoggedIn">
-              <router-link to="/exercises">Exercises-list</router-link>
+              <router-link to="/exercises">{{ $t('exercisesList') }}</router-link>
             </b-nav-item>
           </b-navbar-nav>
 
@@ -34,29 +32,47 @@
               <b-icon icon="eye"></b-icon> {{ simpleModeLabel }}
             </b-nav-item>
             <!-- TTS Welcome Message -->
-            <b-nav-item @click="speakText('Welcome to Fitness Tracker!')">
-              <b-icon icon="volume-up"></b-icon> Read Welcome
+            <b-nav-item @click="toggleScreenReader">
+              <b-icon :icon="isScreenReaderActive ? 'volume-off' : 'volume-up'"></b-icon>
+              {{ isScreenReaderActive ? $t('screenReaderOff') : $t('screenReaderOn') }}
             </b-nav-item>
+            <!-- Color Mode -->
+            <b-nav-item-dropdown :text="$t('colormode')" right menu-class="dropdown-menu-custom">
+              <b-dropdown-item @click="setColorMode('normal')">
+                {{ $t('normalmode') }} <span v-if="currentColorMode === 'normal'">✓</span>
+              </b-dropdown-item>
+              <b-dropdown-item @click="setColorMode('protanopia')">
+                Protanopia <span v-if="currentColorMode === 'protanopia'">✓</span>
+              </b-dropdown-item>
+              <b-dropdown-item @click="setColorMode('deuteranopia')">
+                Deuteranopia <span v-if="currentColorMode === 'deuteranopia'">✓</span>
+              </b-dropdown-item>
+              <b-dropdown-item @click="setColorMode('tritanopia')">
+                Tritanopia <span v-if="currentColorMode === 'tritanopia'">✓</span>
+              </b-dropdown-item>
+              <b-dropdown-item @click="setColorMode('achromatopsia')">
+                Achromatopsia <span v-if="currentColorMode === 'achromatopsia'">✓</span>
+              </b-dropdown-item>
+            </b-nav-item-dropdown>
 
             <!-- User Authentication Links -->
             <b-nav-item v-if="!isLoggedIn">
-              <router-link to="/login">Log in</router-link>
+              <router-link to="/login">{{ $t('login') }}</router-link>
             </b-nav-item>
             <b-nav-item v-if="!isLoggedIn">
-              <router-link to="/signup">Sign up</router-link>
+              <router-link to="/signup">{{ $t('signup') }}</router-link>
             </b-nav-item>
-            <b-nav-item-dropdown
-              v-if="isLoggedIn"
-              text="Profile"
-              right
-              toggle-class="profile-dropdown-toggle"
-              menu-class="dropdown-menu-custom"
-            >
+
+            <!-- Profile Dropdown -->
+            <b-nav-item-dropdown v-if="isLoggedIn" :text="$t('profile')" right toggle-class="profile-dropdown-toggle" menu-class="dropdown-menu-custom">
+              <b-dropdown-item @click="changeLanguage(getAlternativeLanguage)">
+                🌐 {{ languageButtonText }}
+              </b-dropdown-item>
               <b-dropdown-item @click="deleteAccount" class="dropdown-item-delete">
-                ❌ Delete Account
+                ❌ {{ $t('deleteAccount') }}
               </b-dropdown-item>
               <b-dropdown-item @click="logout" class="dropdown-item-logout">
-                🚪 Logout
+                🚪 {{ $t('logout') }}
               </b-dropdown-item>
             </b-nav-item-dropdown>
           </b-navbar-nav>
@@ -71,137 +87,366 @@
 
 <script>
 import { Api } from '@/Api';
-import { playFeedbackSound } from '@/feedback';
-import { speakText } from '@/tts'; // Import Text-to-Speech utility
+import { stt } from '@/stt';
+
 
 export default {
   data() {
     return {
       isLoggedIn: localStorage.getItem('token') != null,
-      isSimpleMode: false // State for Simple Mode
+      isSimpleMode: false,
+      isScreenReaderActive: false,
+      sListening: false,
+      recognition: null,
+      recognizedText: '', // Store recognized speech here
+      currentColorMode: 'normal',
+      colorModes: {
+        normal: {
+          '--primary-color': '#007bff',
+          '--secondary-color': '#6c757d',
+          '--background-color': '#ffffff',
+          '--text-color': '#212529'
+        },
+        protanopia: {
+          '--primary-color': '#ff8c00',
+          '--secondary-color': '#006d77',
+          '--background-color': '#fff7e6',
+          '--text-color': '#1d3557'
+        },
+        deuteranopia: {
+          '--primary-color': '#ffb300',
+          '--secondary-color': '#8b4513',
+          '--background-color': '#faf3dd',
+          '--text-color': '#2e2e2e'
+        },
+        tritanopia: {
+          '--primary-color': '#006d2c',
+          '--secondary-color': '#cc8400',
+          '--background-color': '#e8f5e9',
+          '--text-color': '#0d3b66'
+        },
+        achromatopsia: {
+          '--primary-color': '#666666',
+          '--secondary-color': '#999999',
+          '--background-color': '#f7f7f7',
+          '--text-color': '#000000'
+        }
+      }
     };
   },
   computed: {
-    // Dynamically update the label for Simple Mode toggle
     simpleModeLabel() {
-      return this.isSimpleMode ? 'Disable Simple Mode' : 'Enable Simple Mode';
+      return this.isSimpleMode ? this.$t('simpleModeDisable') : this.$t('simpleModeEnable');
+    },
+    languageButtonText() {
+      return this.$i18n.locale === 'en' ? this.$t('languageSpanish') : this.$t('languageEnglish');
+    },
+    getAlternativeLanguage() {
+      return this.$i18n.locale === 'en' ? 'es' : 'en';
     }
   },
   methods: {
+    setColorMode(mode) {
+      if (this.colorModes[mode]) {
+        Object.entries(this.colorModes[mode]).forEach(([key, value]) => {
+          document.documentElement.style.setProperty(key, value);
+        });
+        this.currentColorMode = mode;
+        document.body.className = mode;
+        localStorage.setItem('colorMode', mode);
+      }
+    },
     toggleSimpleMode() {
       this.isSimpleMode = !this.isSimpleMode;
-      document.body.classList.toggle('simple-mode', this.isSimpleMode);
+      document.getElementById('app').classList.toggle('simple-mode', this.isSimpleMode);
+    },
+    toggleScreenReader() {
+      this.isScreenReaderActive = !this.isScreenReaderActive;
+      this.isScreenReaderActive ? this.enableScreenReader() : this.disableScreenReader();
+      console.log(`Screen Reader is now ${this.isScreenReaderActive ? 'enabled' : 'disabled'}`);
+    },
+    enableScreenReader() {
+      document.body.addEventListener('focusin', this.handleFocus);
+      document.body.addEventListener('mouseup', this.handleTextSelection);
+      document.body.addEventListener('mouseenter', this.handleHover, true);
+      document.body.addEventListener('mouseleave', this.clearSpeech, true);
+    },
+    disableScreenReader() {
+      document.body.removeEventListener('focusin', this.handleFocus);
+      document.body.removeEventListener('mouseup', this.handleTextSelection);
+      document.body.removeEventListener('mouseenter', this.handleHover, true);
+      document.body.removeEventListener('mouseleave', this.clearSpeech, true);
+      this.clearSpeech();
+    },
+    handleFocus(event) {
+      if (!this.isScreenReaderActive) return;
+      const text = event.target.getAttribute('aria-label') || event.target.textContent?.trim();
+      if (text) this.speakText(text);
+    },
+    handleTextSelection() {
+      if (!this.isScreenReaderActive) return;
+      const selectedText = window.getSelection().toString().trim();
+      if (selectedText) this.speakText(selectedText);
+    },
+    handleHover(event) {
+      if (!this.isScreenReaderActive) return;
+      const text = event.target.getAttribute('aria-label') || event.target.textContent?.trim();
+      if (text) this.speakText(text);
+    },
+    clearSpeech() {
+      if (window.speechSynthesis.speaking) {
+        console.log('Clearing ongoing speech...');
+        window.speechSynthesis.cancel();
+      }
     },
     speakText(message) {
-      console.log('Vue speakText method called with:', message); // Debugging log
-      try {
-        speakText(message);
-      } catch (error) {
-        console.error('Error in Text-to-Speech:', error);
-        alert('An error occurred while trying to read the text.');
+      if (!('speechSynthesis' in window)) {
+        alert(this.$t('ttsNotSupported'));
+        return;
       }
+      const synth = window.speechSynthesis;
+      const voices = synth.getVoices();
+      const lang = this.$i18n.locale;
+      const voice = voices.find((v) => v.lang.startsWith(lang)) || voices[0];
+
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.voice = voice;
+      utterance.lang = lang;
+
+      this.clearSpeech();
+      console.log(`Speaking: "${message}"`);
+      synth.speak(utterance);
     },
-    handleSuccess() {
-      playFeedbackSound('success'); // Play success sound
-      console.log('Success action triggered!');
-    },
-    handleError() {
-      playFeedbackSound('error'); // Play error sound
-      console.error('Error action triggered!');
-    },
-    deleteAccount() {
-      if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        const token = localStorage.getItem('token');
-        let userId;
-        try {
-          userId = this.decodeUserIdFromToken(token);
-        } catch (err) {
-          alert('Invalid user session. Please log in again.');
-          this.logout();
-          return;
-        }
-        Api.delete(`/users/${userId}`, {
-          headers: { Authorization: token }
-        })
-          .then(() => {
-            localStorage.removeItem('token');
-            alert('Your account has been successfully deleted.');
-            window.location.href = '/signup';
-          })
-          .catch(() => {
-            alert('Failed to delete account. Please try again later.');
-          });
-      }
-    },
-    decodeUserIdFromToken(token) {
-      if (!token) {
-        throw new Error('Token is missing or invalid.');
-      }
-      const [encryptedUserId] = token.split(':');
-      return encryptedUserId;
+    changeLanguage(lang) {
+      this.$i18n.locale = lang;
     },
     logout() {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    },
+    deleteAccount() {
+      const token = localStorage.getItem('token');
+      Api.delete('/users', { headers: { Authorization: token } })
+        .then(() => {
+          localStorage.removeItem('token');
+          alert('Your account has been deleted.');
+          window.location.href = '/signup';
+        })
+        .catch(() => alert('Account deletion failed.'));
+    },
+    toggleSpeechRecognition() {
+      stt.isRecognitionActive() ? stt.stopRecognition() : stt.startRecognition();
+    },
+    processSpeechCommand(command) {
+      stt.processCommand(command);
+    }
+
+  },
+  mounted() {
+    const savedMode = localStorage.getItem('colorMode') || 'normal';
+    this.setColorMode(savedMode);
+
+    if ('speechSynthesis' in window) {
+      console.log('SpeechSynthesis API is supported.');
+    } else {
+      console.error('SpeechSynthesis API is not supported in this browser.');
+      return;
+    }
+
+    // Ensure proper screen reader event listeners
+    if (this.isScreenReaderActive) {
+      this.enableScreenReader();
+    }
+
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      alert('Speech Recognition is not supported in this browser. Please use a modern browser.');
     }
   }
 };
 </script>
 
-<style scoped>
-/* Navbar Background and Text */
-.b-navbar {
-  background-color: #002752; /* Deep navy blue for high contrast */
-  border-bottom: 3px solid #004085; /* Slightly lighter for distinction */
-  display: flex;
-  justify-content: space-between; /* Ensures left, center, and right sections are spaced out */
-  align-items: center;
+
+<style>
+/* General Styling */
+body {
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* Navbar Brand */
-.b-navbar-brand {
-  color: #ffffff !important; /* Pure white for maximum visibility */
+/* Background Adjustments for Modes */
+body.protanopia {
+  background: linear-gradient(to bottom, #f5f5f5, #e6e6e6);
+}
+
+body.deuteranopia {
+  background: linear-gradient(to right, #fafafa, #f0f0f0);
+}
+
+body.tritanopia {
+  background: repeating-linear-gradient(45deg, #fdfdfd, #f0f0f0 10px, #e0e0e0 10px, #fdfdfd 20px);
+}
+
+body.achromatopsia {
+  background: #d9d9d9;
+}
+
+/* Navbar Styles */
+.b-navbar {
+  background-color: var(--primary-color) !important;
+}
+
+.b-navbar-nav a {
+  color: var(--text-color) !important;
+  transition: color 0.3s ease;
+}
+
+.b-navbar-nav a:hover {
+  color: var(--secondary-color) !important;
+}
+
+/* Dropdown Menu */
+.dropdown-menu-custom {
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--secondary-color);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dropdown Item */
+.dropdown-menu-custom .dropdown-item {
+  padding: 10px;
+  font-size: 1rem;
+  color: var(--text-color) !important; /* Match mode text color */
+  background-color: transparent !important; /* Transparent background */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-menu-custom .dropdown-item:hover,
+.dropdown-menu-custom .dropdown-item:focus {
+  background-color: var(--secondary-color) !important;
+  color: var(--background-color) !important;
+}
+
+.dropdown-menu-custom .dropdown-item.active {
+  background-color: var(--secondary-color) !important;
+  color: var(--background-color) !important;
   font-weight: bold;
 }
 
-.b-navbar-brand:hover {
-  color: #ffc107 !important; /* Gold hover effect for brand */
+.dropdown-menu-custom .dropdown-item:disabled {
+  color: var(--secondary-color) !important;
+  background-color: var(--background-color) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* Centered Navbar Links */
-.navbar-collapse-custom {
-  width: 100%; /* Ensures full width for proper alignment */
-  display: flex;
-  justify-content: space-between; /* Separate left, center, and right areas */
-  align-items: center;
+/* Dropdown Toggle Arrow */
+.dropdown-menu-custom .dropdown-toggle::after {
+  color: var(--text-color) !important;
+  transition: color 0.3s ease;
 }
 
-.nav-center {
-  display: flex;
-  justify-content: center; /* Ensures links are centered horizontally */
-  flex: 1; /* Takes up all available space */
-  text-align: center;
+/* Buttons*/
+button, .btn {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 2px solid var(--secondary-color);
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
-.nav-left,
-.nav-right {
-  display: flex;
-  align-items: center;
+button:hover, .btn:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--background-color);
+  transform: scale(1.05);
 }
 
-/* Navbar Links */
-.b-navbar-nav a {
-  color: #ffffff !important; /* Brighter white for high contrast */
-  font-weight: bold; /* Emphasize text for visibility */
-  text-transform: uppercase; /* Uppercase for better readability */
-  letter-spacing: 0.5px; /* Slightly spaced for clarity */
-  font-size: 1.1rem; /* Slightly larger font for readability */
-  margin: 0 10px; /* Adds spacing between items */
+button:disabled, .btn:disabled {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
+/* Special Buttons */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--button-text);
+}
+
+.btn-primary:hover {
+  background-color: var(--button-hover-bg);
+  color: var(--background-color);
+}
+
+.btn-danger {
+  background-color: var(--secondary-color);
+  color: var(--background-color);
+}
+
+.btn-danger:hover {
+  background-color: #a71d2a;
+  color: var(--background-color);
+}
+
+/* Form Feedback */
+.b-form-invalid-feedback {
+  color: var(--invalid-feedback-color);
+}
+
+.b-form-valid-feedback {
+  color: var(--valid-feedback-color);
+}
+
+/* Table Styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  padding: 10px;
+  text-align: left;
+}
+
+td {
+  border-bottom: 1px solid var(--secondary-color);
+  padding: 10px;
+}
+
+tr:hover {
+  background-color: var(--secondary-color);
+  color: var(--background-color);
+}
+
+/* Tooltip */
+.tooltip-inner {
+  background-color: var(--text-color);
+  color: var(--background-color);
+}
+
+.tooltip-arrow {
+  border-top-color: var(--text-color);
+}
+
+/* Modal Content */
+.img-preview, .video-preview {
+  max-width: 100%;
+  height: auto;
+}
+
+/*simple mode*/
 .simple-mode h1,
 .simple-mode p {
   font-size: 1.5rem;
+}
+
+.simple-mode h3{
+  font-size: 2rem;
 }
 
 .simple-mode button {
@@ -209,73 +454,9 @@ export default {
   padding: 0.8rem 1.5rem;
 }
 
-.b-navbar-nav a:hover {
-  color: #ffc107 !important; /* Gold color for strong hover contrast */
-  text-decoration: underline; /* Non-color indicator for hover */
-  background-color: rgba(255, 193, 7, 0.1); /* Light gold background hover effect */
-}
-
-.b-navbar-nav a:focus {
-  color: #ffffff !important; /* Maintain white text on focus */
-  background-color: #004085; /* Slightly lighter blue for focus background */
-  outline: 2px solid #ffc107; /* Gold focus ring for accessibility */
-  outline-offset: 2px;
-}
-
-/* Profile Dropdown Toggle */
-.profile-dropdown-toggle {
-  font-weight: bold;
-  color: #ffffff !important; /* Brighter white for dropdown toggle */
-}
-
-.profile-dropdown-toggle:hover {
-  text-decoration: underline;
-  color: #ffc107 !important; /* Matches hover state with links */
-}
-
-.dropdown-menu-custom {
-  background-color: #1a1a1a; /* Dark background for contrast */
-  border: 1px solid #444; /* Distinct border for definition */
-  color: #ffffff !important; /* Ensure dropdown content is white */
-  padding: 10px;
-  border-radius: 5px;
-}
-
-/* Dropdown Items */
-.dropdown-item-delete,
-.dropdown-item-logout {
-  font-weight: bold;
-  color: #ffffff !important; /* White text for dropdown items */
-}
-
-.dropdown-item-delete:hover {
-  background-color: #ffe5e5; /* Light red hover effect */
-  color: #cc0000 !important; /* Dark red for hover state */
-}
-
-.dropdown-item-logout:hover {
-  background-color: #d4f1f9; /* Light teal for hover */
-  color: #0d6efd !important; /* Blue for hover state */
-}
-
-/* Fix for disappearing text on hover (specific to buttons) */
-button:hover,
-button:focus {
-  color: #ffffff !important; /* Ensure text stays visible */
-}
-
-/* Mobile and Small Screens Adjustments */
-@media (max-width: 768px) {
-  .b-navbar {
-    background-color: #003366; /* Slightly brighter navy for smaller screens */
-  }
-  .b-navbar-nav a {
-    font-size: 1.2rem; /* Slightly larger font for better readability */
-  }
-
-  .dropdown-menu-custom {
-    max-width: 200px; /* Adjust width for smaller screens */
-    padding: 5px;
-  }
+.simple-mode link {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
 }
 </style>
+

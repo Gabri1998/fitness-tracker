@@ -1,108 +1,86 @@
 export const stt = {
   recognition: null,
   isListening: false,
-  recognizedText: '',
+  recognitionCooldown: false, // Prevents immediate restart
+  onResult: null, // Callback function for recognition results
 
   initRecognition(language = 'en-US') {
     if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      alert('Speech Recognition is not supported in this browser.');
       console.error('Speech Recognition is not supported in this browser.');
       return null;
     }
 
-    // Initialize recognition
     this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     this.recognition.lang = language;
     this.recognition.interimResults = true;
     this.recognition.continuous = true;
 
-    // Event listeners
     this.recognition.onstart = () => {
-      console.log('Speech recognition started.');
+      console.log('[STT] Speech recognition started.');
       this.isListening = true;
     };
 
     this.recognition.onresult = (event) => {
-      this.recognizedText = Array.from(event.results)
+      const transcript = Array.from(event.results)
         .map((result) => result[0].transcript)
         .join('');
-      console.log('Recognized text:', this.recognizedText);
+      console.log(`[STT] Recognized text: ${transcript}`);
+      if (this.onResult) {
+        this.onResult(transcript); // Invoke the provided callback
+      } else {
+        console.warn('[STT] No callback provided to handle recognition results.');
+      }
     };
 
     this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-
-      // Specific error handling
-      switch (event.error) {
-        case 'not-allowed':
-          alert('Microphone access denied. Please allow microphone access and try again.');
-          break;
-        case 'no-speech':
-          alert('No speech detected. Please try again.');
-          break;
-        case 'audio-capture':
-          alert('No microphone found. Please check your audio settings.');
-          break;
-        case 'network':
-          alert('Network error. Please check your internet connection.');
-          break;
-        default:
-          alert('Speech recognition error. Please try again.');
-      }
-
-      // Stop recognition on error
+      console.error('[STT] Speech recognition error:', event.error);
       this.stopRecognition();
     };
 
     this.recognition.onend = () => {
-      console.log('Speech recognition stopped.');
+      console.log('[STT] Speech recognition stopped.');
       this.isListening = false;
+
+      // Start cooldown after stopping
+      this.recognitionCooldown = true;
+      setTimeout(() => {
+        this.recognitionCooldown = false;
+        console.log('[STT] Cooldown ended. Recognition can restart.');
+      }, 300); // Cooldown duration
     };
 
     return this.recognition;
   },
 
-  startRecognition() {
+  async startRecognition({ onResult }) {
     if (!this.recognition) this.initRecognition();
-    if (this.recognition) {
-      this.recognition.start();
-      console.log('Recognition started manually.');
-    } else {
-      console.error('Speech recognition initialization failed.');
+
+    if (this.recognitionCooldown) {
+      console.log('[STT] Recognition cooldown active. Please wait...');
+      return;
     }
+
+    if (this.isListening) {
+      console.log('[STT] Recognition is already active. Stopping first...');
+      this.stopRecognition();
+      await this.delay(300); // Add a delay before restarting
+    }
+
+    this.onResult = onResult; // Assign the callback
+    this.recognition.start();
+    console.log('[STT] Starting recognition.');
   },
 
   stopRecognition() {
-    if (this.recognition) {
+    if (this.recognition && this.isListening) {
       this.recognition.stop();
       this.isListening = false;
-      console.log('Recognition stopped manually.');
-    } else {
-      console.error('Cannot stop recognition as it is not initialized.');
+      this.onResult = null; // Clear the callback
+      console.log('[STT] Recognition stopped manually.');
     }
   },
 
-  getRecognizedText() {
-    return this.recognizedText;
-  },
-
-  isRecognitionActive() {
-    return this.isListening;
-  },
-
-  processCommand(command) {
-    const normalizedCommand = command.toLowerCase();
-
-    // Command handling logic
-    if (normalizedCommand.includes('logout')) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    } else if (normalizedCommand.includes('home')) {
-      window.location.href = '/';
-    } else if (normalizedCommand.includes('refresh')) {
-      window.location.reload();
-    } else {
-      console.log(`Unknown command: ${command}`);
-    }
+  delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 };

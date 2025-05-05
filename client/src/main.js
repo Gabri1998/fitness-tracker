@@ -9,6 +9,8 @@ import './assets/styles.css';
 import { speakText } from './tts';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+import { stt } from './stt';
+
 
 Vue.prototype.$speakText = speakText;
 Vue.use(BootstrapVue);
@@ -16,7 +18,7 @@ Vue.use(IconsPlugin);
 Vue.use(VueI18n);
 
 const messages = { en, es };
-
+stt.initRecognition();
 const i18n = new VueI18n({
   locale: 'en', // Default language
   fallbackLocale: 'en', // Fallback language

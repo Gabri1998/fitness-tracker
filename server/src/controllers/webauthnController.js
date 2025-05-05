@@ -1,147 +1,70 @@
 const express = require("express");
-const crypto = require("crypto");
 const router = express.Router();
+const crypto = require("crypto");
 const User = require("../models/User");
-const {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
-  generateAuthenticationOptions,
-  verifyAuthenticationResponse,
-} = require("@simplewebauthn/server");
 const encryption = require("../utilities/crypto-utils");
+require("dotenv").config();
 
-// Generate registration options
-router.post("/register/options", async (req, res, next) => {
+const ABSOLUTE_EMAIL = process.env.ABSOLUTE_EMAIL;
+
+router.post("/login", async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const { email } = req.body;
 
-    const options = generateRegistrationOptions({
-      rpName: process.env.RP_NAME || "Fitness Tracker App", // Use env variables or defaults
-      rpID: process.env.RP_ID || "localhost", 
-      userID: user._id.toString(),
-      userName: user.username,
-      timeout: 60000,
-      attestationType: "direct",
-      excludeCredentials: user.webAuthnCredentials.map((cred) => ({
-        id: Buffer.from(cred.credentialID, "base64"),
-        type: "public-key",
-      })),
-      authenticatorSelection: {
-        authenticatorAttachment: "platform",
-        requireResidentKey: false,
-        userVerification: "preferred",
-      },
-    });
-
-    req.session.challenge = options.challenge;
-    res.status(200).json(options);
-  } catch (error) {
-    console.error("Error generating registration options:", error);
-    next(error);
-  }
-});
-
-// Verify registration response
-router.post("/register/verify", async (req, res, next) => {
-  try {
-    const { username, registrationResponse } = req.body;
-
-    const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const expectedChallenge = req.session.challenge;
-    const verification = await verifyRegistrationResponse({
-      response: registrationResponse,
-      expectedChallenge,
-      expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
-      expectedRPID: process.env.RP_ID || "localhost",
-    });
-
-    if (!verification.verified) {
-      return res.status(400).json({ message: "Registration failed" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required." });
     }
 
-    const { credentialPublicKey, credentialID, counter } = verification.registrationInfo;
-
-    user.webAuthnCredentials.push({
-      credentialID: credentialID.toString("base64"),
-      publicKey: credentialPublicKey.toString("base64"),
-      counter,
-    });
-
-    await user.save();
-    res.status(201).json({ message: "Registration successful!" });
-  } catch (error) {
-    console.error("Error verifying registration response:", error);
-    next(error);
-  }
-});
-
-// Generate authentication options
-router.post("/auth/options", async (req, res, next) => {
-  try {
-    const user = await User.findOne({ username: req.body.username });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const options = generateAuthenticationOptions({
-      rpID: process.env.RP_ID || "localhost",
-      timeout: 60000,
-      allowCredentials: user.webAuthnCredentials.map((cred) => ({
-        id: Buffer.from(cred.credentialID, "base64"),
-        type: "public-key",
-      })),
-      userVerification: "preferred",
-    });
-
-    req.session.challenge = options.challenge;
-    res.status(200).json(options);
-  } catch (error) {
-    console.error("Error generating authentication options:", error);
-    next(error);
-  }
-});
-
-// Verify authentication response
-router.post("/auth/verify", async (req, res, next) => {
-  try {
-    const { username, authenticationResponse } = req.body;
-
-    const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const expectedChallenge = req.session.challenge;
-    const credential = user.webAuthnCredentials.find(
-      (cred) => cred.credentialID === authenticationResponse.id
-    );
-
-    if (!credential) {
-      return res.status(400).json({ message: "Credential not found" });
+    // Check if email matches the hardcoded email or exists in the database
+    if (email === ABSOLUTE_EMAIL || await User.findOne({ email })) {
+      const challenge = crypto.randomBytes(32).toString("base64");
+      return res.status(200).json({
+        success: true,
+        message: "User authorized for fingerprint authentication.",
+        challenge,
+      });
     }
 
-    const verification = await verifyAuthenticationResponse({
-      response: authenticationResponse,
-      expectedChallenge,
-      expectedOrigin: process.env.ORIGIN || "http://localhost:3000",
-      expectedRPID: process.env.RP_ID || "localhost",
-      authenticator: {
-        credentialPublicKey: Buffer.from(credential.publicKey, "base64"),
-        counter: credential.counter,
-      },
-    });
+    return res.status(404).json({ success: false, message: "Authentication failed. Email not recognized." });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+router.post("/login/verify", async (req, res) => {
+  try {
+    const { email, response } = req.body;
 
-    if (!verification.verified) {
-      return res.status(400).json({ message: "Authentication failed" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required." });
     }
 
-    credential.counter = verification.authenticationInfo.newCounter;
-    await user.save();
+    // Validate the email exists in the database
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Authentication failed. Email not recognized." });
+    }
 
-    const token = encryption.encryptToken(user._id.toString());
-    res.status(200).json({ token });
+    // Verify the fingerprint response (simplified for this example)
+    if (response && response.verified) {
+      console.log("Fingerprint authentication successful for:", email);
+
+      // Generate an encrypted token
+      const token = encryption.encryptToken(user._id.toString());
+      console.log("Generated token:", token);
+
+      return res.status(200).json({
+        success: true,
+        message: "Authentication successful!",
+        token, // Send the token to the frontend
+      });
+    } else {
+      console.log("Fingerprint authentication failed for:", email);
+      return res.status(400).json({ success: false, message: "Authentication failed." });
+    }
   } catch (error) {
-    console.error("Error verifying authentication response:", error);
-    next(error);
+    console.error("Error during fingerprint verification:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
   }
 });
 

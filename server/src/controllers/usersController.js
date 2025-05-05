@@ -92,16 +92,13 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
-/**router.post("/", function (req, res, next) {
-  console.log("Inside Users Controller - Register 1");
+router.post("/", function (req, res, next) {
   bcrypt.hash(req.body.password, 10, function (err, hashedPass) {
     if (err) {
       res.status(401).json({
         err: "no password provided",
       });
-      console.log("Inside Users Controller - Register 2");
     } else {
-      console.log("Inside Users Controller - Register 3");
       var new_user = new User(req.body);
       new_user.password = hashedPass;
       new_user
@@ -113,7 +110,7 @@ router.get("/:id", async (req, res, next) => {
         });
     }
   });
-});**/
+});
 
 // PUT
 router.put("/:id", async function (req, res, next) {

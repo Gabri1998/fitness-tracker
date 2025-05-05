@@ -77,6 +77,7 @@
 <script>
 import { Api } from '../Api';
 
+
 export default {
   data() {
     return {
@@ -96,7 +97,7 @@ export default {
         case 'name':
           return this.form.name.length >= 3;
         case 'username':
-          return this.form.username.trim().length > 0;
+          return this.form.username.trim().length > 0 || this.form.email.trim().length > 0;
         case 'email':
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email);
         case 'age':
@@ -109,18 +110,20 @@ export default {
     },
     async onSubmit(event) {
       event.preventDefault();
+      console.log('Start submission');
 
       // Validate all fields
       if (
         !this.validateField('name') ||
-        !this.validateField('username') ||
-        !this.validateField('email') ||
+        !(this.validateField('username') || this.validateField('email')) ||
         !this.validateField('age') ||
         !this.validateField('password')
       ) {
         this.errorMessage = 'Please fix the errors before submitting.';
-        return;
+        return; // Stops execution if validation fails
       }
+      console.log('Validation successful');
+      console.log('Form Data:', this.form);
 
       try {
         // Step 1: Register the user traditionally
@@ -135,43 +138,13 @@ export default {
         const user = registerResponse.data;
         console.log('User registered:', user);
 
-        // Step 2: Fetch WebAuthn registration options
-        const optionsResponse = await Api.post('/webauthn/register/options', {
-          username: this.form.username
-        });
-
-        const options = optionsResponse.data;
-
-        // Step 3: Trigger WebAuthn registration
-        const credential = await navigator.credentials.create({ publicKey: options });
-
-        // Step 4: Verify WebAuthn registration
-        const verifyResponse = await Api.post('/webauthn/register/verify', {
-          credential: {
-            id: credential.id,
-            rawId: this.bufferToBase64(credential.rawId),
-            response: {
-              attestationObject: this.bufferToBase64(credential.response.attestationObject),
-              clientDataJSON: this.bufferToBase64(credential.response.clientDataJSON)
-            },
-            type: credential.type
-          },
-          username: this.form.username
-        });
-
-        if (!verifyResponse.data.success) {
-          throw new Error('Fingerprint enrollment failed');
-        }
-
+        // Show success message or navigate to the login page
         alert('Signup successful! Redirecting...');
         this.$router.push('/login');
       } catch (error) {
         console.error('Error during signup:', error);
-        this.errorMessage = error.response?.data?.message || 'Signup failed. Please try again.';
+        this.errorMessage = error.response?.data?.message || error.message || 'Signup failed. Please try again.';
       }
-    },
-    bufferToBase64(buffer) {
-      return btoa(String.fromCharCode(...new Uint8Array(buffer)));
     },
     onReset(event) {
       event.preventDefault();
@@ -181,6 +154,8 @@ export default {
   }
 };
 </script>
+
+
 
 <style>
 .signup-button {

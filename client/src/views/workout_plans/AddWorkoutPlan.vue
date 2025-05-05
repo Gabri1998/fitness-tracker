@@ -8,14 +8,24 @@
       <b-form @submit="onSubmit" @reset="onReset" novalidate>
         <!-- Type Field -->
         <b-form-group id="input-group-1" label="Workout Type" label-for="input-1">
-          <b-form-input
-            id="input-1"
-            v-model="form.type"
-            placeholder="Enter Workout Type or Dictate Here"
-            @focus="startRecognitionFor('type')"
-            :state="validateField('type')"
-            required
-          ></b-form-input>
+          <div class="input-with-microphone">
+            <!-- Lamp Indicator -->
+            <div class="lamp" :class="{ active: activeField === 'type' && isListening }"></div>
+            <b-form-input
+              ref="type"
+              id="input-1"
+              v-model="form.type"
+              placeholder="Enter Workout Type or Dictate Here"
+              :state="validateField('type')"
+              required
+            ></b-form-input>
+            <b-icon
+              icon="mic-fill"
+              class="microphone-icon"
+              @click="toggleRecognition('type')"
+              :class="{ active: activeField === 'type' && isListening }"
+            />
+          </div>
           <b-form-invalid-feedback v-if="!validateField('type')">
             Type is required.
           </b-form-invalid-feedback>
@@ -23,14 +33,24 @@
 
         <!-- Duration Field -->
         <b-form-group id="input-group-2" label="Duration (e.g., '30 days')" label-for="input-2">
-          <b-form-input
-            id="input-2"
-            v-model="form.duration"
-            placeholder="Enter Duration or Dictate Here"
-            @focus="startRecognitionFor('duration')"
-            :state="validateField('duration')"
-            required
-          ></b-form-input>
+          <div class="input-with-microphone">
+            <!-- Lamp Indicator -->
+            <div class="lamp" :class="{ active: activeField === 'duration' && isListening }"></div>
+            <b-form-input
+              ref="duration"
+              id="input-2"
+              v-model="form.duration"
+              placeholder="Enter Duration or Dictate Here"
+              :state="validateField('duration')"
+              required
+            ></b-form-input>
+            <b-icon
+              icon="mic-fill"
+              class="microphone-icon"
+              @click="toggleRecognition('duration')"
+              :class="{ active: activeField === 'duration' && isListening }"
+            />
+          </div>
           <b-form-invalid-feedback v-if="!validateField('duration')">
             Duration is required and must be a valid string.
           </b-form-invalid-feedback>
@@ -56,15 +76,11 @@
           >
             🗑 Reset
           </b-button>
-          <button @click="toggleSpeechRecognition">
-            {{ isListening ? 'Stop Listening' : 'Start Listening' }}
-          </button>
         </div>
       </b-form>
     </div>
   </div>
 </template>
-
 
 <script>
 import { Api } from '@/Api';
@@ -78,58 +94,81 @@ export default {
         duration: ''
       },
       activeField: null, // Tracks the active field for STT
-      errorMessage: ''
+      errorMessage: '',
+      isListening: false, // Indicates if recognition is active
+      recognitionTimer: null, // Timer for auto-stopping recognition
+      maxRecognitionTime: 10000 // Maximum recognition time in milliseconds (10 seconds)
     };
   },
-  computed: {
-    recognizedText() {
-      return stt.getRecognizedText();
-    },
-    isListening() {
-      return stt.isRecognitionActive();
-    }
-  },
   methods: {
-    toggleSpeechRecognition() {
-      if (stt.isRecognitionActive()) {
-        stt.stopRecognition();
-        this.activeField = null; // Clear active field when stopping STT
-      } else {
-        stt.startRecognition();
+    async toggleRecognition(field) {
+      try {
+        if (this.activeField === field && this.isListening) {
+          await this.stopRecognition();
+        } else {
+          if (this.isListening) {
+            await this.stopRecognition();
+          }
+
+          this.activeField = field; // Track the active field
+          this.isListening = true;
+          console.log(`[STT] Starting recognition for field: ${field}`);
+
+          // Start speech recognition
+          await stt.startRecognition({
+            onResult: (text) => {
+              if (field === 'duration') {
+                this.form[field] = text.trim(); // Replace content for duration
+              } else {
+                this.form[field] = text.trim(); // Replace content for other fields
+              }
+              console.log(`[STT] Updated field "${field}" with text: "${text}"`);
+            }
+          });
+
+          // Set timer for auto-stopping recognition
+          this.clearTimer();
+          this.recognitionTimer = setTimeout(async () => {
+            console.log(`[STT] Auto-stopping recognition for field: ${field}`);
+            await this.stopRecognition();
+          }, this.maxRecognitionTime);
+        }
+      } catch (error) {
+        console.error('[STT] Error toggling recognition:', error);
+        this.errorMessage = 'Speech recognition error. Please try again.';
       }
     },
-    startRecognitionFor(field) {
-      this.activeField = field;
-      stt.recognizedText = ''; // Clear previous recognized text
-      if (!stt.isRecognitionActive()) {
-        stt.startRecognition();
+    async stopRecognition() {
+      try {
+        await stt.stopRecognition();
+        this.isListening = false;
+        this.activeField = null;
+        this.clearTimer();
+        console.log('[STT] Recognition stopped.');
+      } catch (error) {
+        console.error('[STT] Error stopping recognition:', error);
+      }
+    },
+    clearTimer() {
+      if (this.recognitionTimer) {
+        clearTimeout(this.recognitionTimer);
+        this.recognitionTimer = null;
       }
     },
     validateField(field) {
-      const fieldValue = this.form[field].trim();
-      const recognizedValue = this.activeField === field ? this.recognizedText.trim() : '';
-      return fieldValue.length > 0 || recognizedValue.length > 0;
+      const fieldValue = this.form[field]?.trim();
+      return fieldValue && fieldValue.length > 0;
     },
     async onSubmit(event) {
       event.preventDefault();
 
-      // Combine manually entered and recognized text for submission
-      const type =
-        this.activeField === 'type' && this.recognizedText.trim()
-          ? this.recognizedText
-          : this.form.type;
-      const duration =
-        this.activeField === 'duration' && this.recognizedText.trim()
-          ? this.recognizedText
-          : this.form.duration;
-
-      if (!type.trim() || !duration.trim()) {
+      if (!this.validateField('type') || !this.validateField('duration')) {
         this.errorMessage = 'Please fill out all required fields correctly.';
         return;
       }
 
       try {
-        await Api.post('/workoutplans', { type: type.trim(), duration: duration.trim() });
+        await Api.post('/workoutplans', this.form);
         this.$router.push({ path: '/workout-plans' });
       } catch (error) {
         this.errorMessage = 'Sorry, something went wrong. Please try again later.';
@@ -140,15 +179,7 @@ export default {
       this.form.type = '';
       this.form.duration = '';
       this.errorMessage = '';
-      stt.recognizedText = ''; // Clear STT text
-    }
-  },
-  watch: {
-    recognizedText(newValue) {
-      // Update the active field with recognized text in real time
-      if (this.activeField) {
-        this.form[this.activeField] = newValue;
-      }
+      this.stopRecognition();
     }
   }
 };
@@ -157,7 +188,47 @@ export default {
 
 
 <style>
-/* Button Layout */
+
+/* Lamp Indicator Styles */
+.lamp {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: red;
+  margin-right: 8px;
+  transition: background-color 0.3s ease;
+}
+.lamp.active {
+  background-color: blue;
+}
+/* General Styling */
+body {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Input with Microphone Styling */
+.input-with-microphone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.microphone-icon {
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.microphone-icon.active {
+  color: #007bff;
+}
+
+.microphone-icon:hover {
+  color: #0056b3;
+}
+
+/* Buttons Layout */
 .add-button {
   display: flex;
   gap: 10px;
@@ -165,9 +236,9 @@ export default {
 
 /* Submit Button Styling */
 .btn-submit {
-  background-color: var(--button-bg); /* Use global button background */
-  color: var(--button-text); /* Use global button text color */
-  border: 2px solid var(--button-bg); /* Ensure consistent border */
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: 2px solid var(--button-bg);
   border-radius: 4px;
   font-size: 16px;
   font-weight: bold;
@@ -175,15 +246,15 @@ export default {
 }
 
 .btn-submit:hover {
-  background-color: var(--button-hover-bg); /* Global hover background */
-  color: var(--background-color); /* Ensure contrast on hover */
+  background-color: var(--button-hover-bg);
+  color: var(--background-color);
   border-color: var(--button-hover-bg);
 }
 
 /* Reset Button Styling */
 .btn-reset {
-  background-color: var(--secondary-color); /* Global secondary color */
-  color: var(--background-color); /* Ensure text contrast */
+  background-color: var(--secondary-color);
+  color: var(--background-color);
   border: 2px solid var(--secondary-color);
   border-radius: 4px;
   font-size: 16px;
@@ -192,9 +263,18 @@ export default {
 }
 
 .btn-reset:hover {
-  background-color: #a71d2a; /* Darker red for hover */
-  color: var(--background-color); /* Ensure text contrast */
+  background-color: #a71d2a;
+  color: var(--background-color);
   border-color: #a71d2a;
+}
+
+/* Form Feedback */
+.b-form-invalid-feedback {
+  color: var(--invalid-feedback-color);
+}
+
+.b-form-valid-feedback {
+  color: var(--valid-feedback-color);
 }
 
 /* Tooltip Styling */
@@ -215,5 +295,18 @@ export default {
   font-size: 1.2rem;
   padding: 0.8rem 1.5rem;
 }
-</style>
 
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .add-button {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .btn-submit,
+  .btn-reset {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>

@@ -1,48 +1,52 @@
-# Backend and Frontend Template
+# Accessible Fitness Management System
 
-Latest version: https://git.chalmers.se/courses/dit342/group-00-web
+A full-stack web application designed with comprehensive accessibility features for inclusive fitness management, following Human-Computer Interaction principles.
 
-This template refers to itself as `group-00-web`. In your project, use your group number in place of `00`.
+## Features
+
+### Accessibility Features
+- **Visual Accessibility**: Colour blindness support, high contrast themes, and dynamic text resizing
+- **Voice Integration**: Text-to-speech and speech-to-text functionality throughout the application
+- **Multi-Language Support**: English and Spanish localization with easy language switching
+- **Haptic Feedback**: Vibration patterns for user interactions and feedback
+- **Biometric Authentication**: Fingerprint recognition for secure device access
+
+### Fitness Management
+- **Workout Plans**: Create and manage personalized workout routines
+- **Exercise Library**: Comprehensive exercise database with demonstrations
+- **Session Tracking**: Schedule and track workout sessions with progress monitoring
+- **Media Support**: Upload images and videos for exercise demonstrations
+
+## Technology Stack
+
+### Frontend
+- Vue.js 3 with Vue Router
+- Custom CSS with accessibility-focused design
+- Web Speech API for voice features
+- Vibration API for haptic feedback
+- Responsive design for multiple devices
+
+### Backend
+- Node.js with Express.js framework
+- MongoDB database with Mongoose ODM
+- Custom session-based authentication system
+- File upload handling for media content
+- RESTful API architecture
 
 ## Project Structure
-
-| File        | Purpose           | What you do?  |
-| ------------- | ------------- | ----- |
-| `server/` | Backend server code | All your server code |
-| [server/README.md](server/README.md) | Everything about the server | **READ ME** carefully! |
-| `client/` | Frontend client code | All your client code |
-| [client/README.md](client/README.md) | Everything about the client | **READ ME** carefully! |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Free online production deployment | Deploy your app online in production mode |
-| [docs/LOCAL_DEPLOYMENT.md](docs/LOCAL_DEPLOYMENT.md) | Local production deployment | Deploy your app local in production mode |
-
-## Requirements
-
-The version numbers in brackets indicate the tested versions but feel free to use more recent versions.
-You can also use alternative tools if you know how to configure them (e.g., Firefox instead of Chrome).
-
-* [Git](https://git-scm.com/) (v2) => [installation instructions](https://www.atlassian.com/git/tutorials/install-git)
-  * [Add your Git username and set your email](https://docs.gitlab.com/ce/gitlab-basics/start-using-git.html#add-your-git-username-and-set-your-email)
-    * `git config --global user.name "YOUR_USERNAME"` => check `git config --global user.name`
-    * `git config --global user.email "email@example.com"` => check `git config --global user.email`
-  * > **Windows users**: We recommend to use the [Git Bash](https://www.atlassian.com/git/tutorials/git-bash) shell from your Git installation or the Bash shell from the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run all shell commands for this project.
-* [Chalmers GitLab](https://git.chalmers.se/) => Login with your **Chalmers CID** choosing "Sign in with" **Chalmers Login**. (contact [support@chalmers.se](mailto:support@chalmers.se) if you don't have one)
-  * DIT342 course group: https://git.chalmers.se/courses/dit342
-  * [Setup SSH key with Gitlab](https://docs.gitlab.com/ee/ssh/)
-    * Create an SSH key pair `ssh-keygen -t ed25519 -C "email@example.com"` (skip if you already have one)
-    * Add your public SSH key to your Gitlab profile under https://git.chalmers.se/profile/keys
-    * Make sure the email you use to commit is registered under https://git.chalmers.se/profile/emails
-  * Checkout the [Backend-Frontend](https://git.chalmers.se/courses/dit342/group-00-web) template `git clone git@git.chalmers.se:courses/dit342/group-00-web.git`
-* [Server Requirements](./server/README.md#Requirements)
-* [Client Requirements](./client/README.md#Requirements)
-
-## Getting started
-
-```bash
-# Clone repository
-git clone git@git.chalmers.se:courses/dit342/group-00-web.git
-
-# Change into the directory
-cd group-00-web
+├── client/ # Vue.js frontend application
+│ ├── src/
+│ │ ├── views/ # Application pages and components
+│ │ ├── locales/ # Multi-language translation files
+│ │ └── utils/ # Accessibility utilities
+│ └── public/ # Static assets
+├── server/ # Node.js backend application
+│ ├── src/
+│ │ ├── controllers/ # API route handlers
+│ │ ├── models/ # Database models
+│ │ ├── middleware/ # Authentication and validation
+│ │ └── services/ # Business logic
+└── docs/ # Project documentation
 
 # Setup backend
 cd server && npm install
@@ -51,35 +55,49 @@ npm run dev
 # Setup frontend
 cd client && npm install
 npm run serve
-```
 
-> Check out the detailed instructions for [backend](./server/README.md) and [frontend](./client/README.md).
-
-## Visual Studio Code (VSCode)
-
-Open the `server` and `client` in separate VSCode workspaces or open the combined [backend-frontend.code-workspace](./backend-frontend.code-workspace). Otherwise, workspace-specific settings don't work properly.
 
 ## System Definition (MS0)
 
 ### Purpose
 
-This program is intented to provide a platform for managing fitness and 
- allowing users to plan, monitor and improve their excercise regimens. By providing a customized fitness journey users can have personalized training programs made up of variety of workout sessions and excercises.The purpose of this system is to provide a systematic approach to fitness to encourage user to stick by their fitness plans and goals, allowing users to keep track of their fitness progress.
+This program is intended to provide a platform for managing fitness and 
+ allowing users to plan, monitor and improve their exercise regimens. By providing a customized fitness journey, users can have personalized training programs made up of a variety of workout sessions and exercises. The purpose of this system is to provide a systematic approach to fitness to encourage users to stick to their fitness plans and goals, allowing users to keep track of their fitness progress.
 
 
-### Pages
+**Access Application**
 
-* Sign Up: The user can sign up to be able to use this Fitness Tracker. The user has to enter their basic information such as name, email, age, and a password.
+Frontend: http://localhost:8080
 
-* Log In: The user can use the information they typed in the sign-up page to enter the Fitness Tracker and access its amenities.
+Backend API: http://localhost:3000
 
-* Home: The homepage allows the user to navigate to workout plans, sessions, and exercises, as well as view information about the current user logged in.
+**API Documentation**
+The backend provides RESTful endpoints for:
 
-* Workout Plans: This page allows the user to track already logged workout plans, add new ones, or update and delete existing ones.
+User authentication and session management
 
-* Sessions: The user can navigate to this page by adding a workout plan. In the session page, the user can choose to name the session, specify its duration and date. Additionally, the user can add exercises from the list of available exercises to their session.
+Workout plan creation and management
 
-* Exercises: This page allows the user to track already logged exercises, add new ones, or update and delete existing ones.
+Exercise library management
+
+Session scheduling and tracking
+
+User preference storage
+**
+Accessibility Compliance**
+_This application follows WCAG 2.1 AA guidelines and includes:_
+
+Screen reader compatibility
+
+Keyboard navigation support
+
+Colour Blindness mode compliance
+
+Text scaling up to 200%
+
+Alternative text for all media
+
+Caption support for videos
 
 
 ### Entity-Relationship (ER) Diagram
@@ -89,3 +107,4 @@ This program is intented to provide a platform for managing fitness and
 ## Teaser (MS3)
 
 ![Teaser](./images/readme.png)
+
